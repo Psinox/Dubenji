@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dubenji — Indumentaria & Personalizados</title>
+  <meta name="description" content="Remeras, buzos, camperas y prendas personalizadas. Calidad premium en Bella Vista, Corrientes.">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👕</text></svg>">
+</head>
+<body>
+
+<!-- ====================== TOPBAR ====================== -->
+<div class="topbar">
+  <div class="topbar-inner">
+    <span>📍 Bella Vista, Corrientes</span>
+    <div class="topbar-links">
+      <a href="tel:+5493777730482">📞 +54 9 3777 730482</a>
+      <a href="https://www.instagram.com/dubenji_personalizados/?hl=es-la" target="_blank">📸 @dubenji_personalizados</a>
+    </div>
+  </div>
+</div>
+
+<!-- ====================== HEADER / NAV ====================== -->
+<header>
+  <nav>
+    <a href="#" class="logo">
+      <img src="icono-talles/icono 400x400.webp" alt="Dubenji" class="logo-icon-img">
+      <img src="icono-talles/icono 600x400.webp" alt="Dubenji" class="logo-text-img">
+    </a>
+    <ul class="nav-links">
+      <li><a href="#" class="active">Inicio</a></li>
+      <li><a href="#productos">Productos</a></li>
+      <li><a href="#personalizados">Personalizados</a></li>
+      <li><a href="#contacto">Contacto</a></li>
+    </ul>
+    <div class="nav-right">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="buscador" placeholder="Buscar productos…">
+      </div>
+      <button class="btn-carrito-nav" onclick="abrirCarrito()" id="cartBtn" aria-label="Carrito">
+        🛒 <span class="cart-count" id="cartCount">0</span>
+      </button>
+      <a href="https://wa.me/5493777730482?text=Hola!%20Quiero%20consultar%20por%20sus%20productos." target="_blank" class="btn-whatsapp-nav">
+        💬 WhatsApp
+      </a>
+      <button class="btn-login-discreto" onclick="abrirLogin()" title="Acceso administrador">🔑</button>
+      <button class="hamburger" id="hamburger">☰</button>
+    </div>
+  </nav>
+</header>
+
+<!-- Mobile nav -->
+<div class="mobile-nav" id="mobileNav">
+  <button class="close-btn" id="closeMobileNav">✕</button>
+  <a href="#">Inicio</a>
+  <a href="#productos">Productos</a>
+  <a href="#personalizados">Personalizados</a>
+  <a href="#contacto">Contacto</a>
+  <a href="https://wa.me/5493777730482" target="_blank" style="color:#25d366">💬 WhatsApp</a>
+</div>
+
+<!-- ====================== CARRUSEL ====================== -->
+<section class="carousel-section">
+  <div class="carousel-wrap" style="overflow:hidden;position:relative;">
+    <div class="carousel-track" id="carouselTrack"></div>
+    <button class="carousel-btn carousel-prev" onclick="prevSlide()" aria-label="Anterior">‹</button>
+    <button class="carousel-btn carousel-next" onclick="nextSlide()" aria-label="Siguiente">›</button>
+    <div class="carousel-dots" id="carouselDots"></div>
+  </div>
+</section>
+
+<!-- ====================== CATEGORÍAS ====================== -->
+<section class="servicios-section">
+  <div class="servicios-grid" id="serviciosGrid"></div>
+</section>
+
+<!-- ====================== PRODUCTOS ====================== -->
+<section class="productos-section" id="productos">
+
+  <div class="section-block">
+    <div class="section-header">
+      <h2 class="section-title">👕 Productos <span>Dubenji</span></h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="filtros" id="filtros"></div>
+
+    <!-- EFEMÉRIDES DESTACADAS -->
+    <div class="section-block" id="efemeridesDestacadas" style="display:none">
+      <div class="section-header">
+        <h2 class="section-title">🎉 Temporada</h2>
+        <div class="section-divider"></div>
+      </div>
+      <div id="gridEfemerides" class="productos-grid"></div>
+    </div>
+
+    <!-- PRODUCTOS INDIVIDUALES -->
+    <div id="gridIndividuales" class="productos-grid"></div>
+  </div>
+
+  <!-- PAQUETES -->
+  <div class="section-block" id="paquetes">
+    <div class="section-header">
+      <h2 class="section-title">📦 Packs <span>y Combos Mayoristas</span></h2>
+      <div class="section-divider"></div>
+    </div>
+    <p style="color:var(--gris);font-size:.9rem;margin-bottom:24px;margin-top:-12px;">
+      Pedidos por mayor con precio especial. Elegí colores y diseños.
+    </p>
+    <div id="gridPaquetes" class="productos-grid"></div>
+  </div>
+
+</section>
+
+<!-- ====================== BANNER PERSONALIZADOS ====================== -->
+<section class="banner-servicio" id="personalizados">
+  <div class="banner-servicio-inner">
+    <h2>🎨 Personalizá tu Prenda</h2>
+    <p>
+      Traé tu diseño o elegí de nuestro catálogo. Pedidos por mayor y menor.
+    </p>
+    <a href="https://wa.me/5493777730482?text=Hola!%20Quiero%20personalizar%20una%20prenda."
+       target="_blank" class="btn-wa-big">💬 Consultar por WhatsApp</a>
+  </div>
+</section>
+
+<!-- ====================== FOOTER ====================== -->
+<footer id="contacto">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="logo">
+        <img src="icono-talles/icono 400x400.webp" alt="Dubenji" class="logo-icon-img">
+        <img src="icono-talles/icono 600x400.webp" alt="Dubenji" class="logo-text-img">
+      </div>
+      <p>Indumentaria urbana y personalizados.<br>
+      Calidad premium, diseños exclusivos.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Contacto</h4>
+      <ul>
+        <li>📍 Bella Vista, Corrientes</li>
+        <li>💬 <a href="https://wa.me/5493777538753" target="_blank">+54 3777 53-8753</a></li>
+        <li>📸 <a href="https://www.instagram.com/dubenji_personalizados/?hl=es-la" target="_blank">@dubenji_personalizados</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Horarios</h4>
+      <ul>
+        <li>Lun – Vie: 9:00 – 13:00</li>
+        <li>Lun – Vie: 16:00 – 20:30</li>
+        <li>Sábado: 9:00 – 13:00</li>
+        <li>Domingo: Cerrado</li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 Dubenji · Todos los derechos reservados</span>
+    <span>Precios en pesos argentinos · Sujetos a cambio sin previo aviso</span>
+  </div>
+</footer>
+
+<!-- ====================== MODAL DETALLE DE PRODUCTO ====================== -->
+<div class="modal-overlay" id="productoModal" onclick="if(event.target===this)cerrarProducto()">
+  <div class="prod-modal-content">
+    <button class="prod-modal-close" onclick="cerrarProducto()">✕</button>
+    <div class="prod-detalle" id="productoDetalle"></div>
+  </div>
+</div>
+
+<!-- ====================== MODAL GUÍA DE TALLES ====================== -->
+<div class="modal-overlay" id="guiaTallesModal" onclick="if(event.target===this)cerrarGuiaTalles()">
+  <div class="guia-talles-content">
+    <button class="prod-modal-close" onclick="cerrarGuiaTalles()">✕</button>
+    <div id="guiaTallesBody"></div>
+  </div>
+</div>
+
+<!-- ====================== CARRITO DRAWER ====================== -->
+<div class="cart-overlay" id="cartOverlay" onclick="if(event.target===this)cerrarCarrito()"></div>
+<div class="cart-drawer" id="cartDrawer">
+  <div class="cart-header">
+    <h2>🛒 Carrito</h2>
+    <button class="cart-close" onclick="cerrarCarrito()">✕</button>
+  </div>
+  <div class="cart-body" id="cartBody">
+    <div class="cart-empty"><span class="cart-empty-icon">🛒</span><p>El carrito está vacío</p></div>
+  </div>
+  <div class="cart-footer" id="cartFooter">
+    <div class="cart-cupon">
+      <input type="text" id="cuponInput" placeholder="Código de descuento" onkeydown="if(event.key==='Enter')aplicarCupon()">
+      <button onclick="aplicarCupon()">Aplicar</button>
+    </div>
+    <div class="cart-total" id="cartTotal">
+      <span>Total:</span>
+      <span>$ 0</span>
+    </div>
+    <button class="btn-wa-checkout" onclick="checkoutWhatsApp()">💬 Comprar por WhatsApp</button>
+  </div>
+</div>
+
+<!-- ====================== BARRA ADMIN ====================== -->
+<div class="admin-bar" id="adminBar">
+  <span>⚙️ Modo Administrador</span>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+    <a href="admin.html?key=dubenji-admin-2026">✏️ Gestionar productos</a>
+    <a href="#" onclick="cerrarSesion();return false;" class="btn-logout">🔒 Salir</a>
+  </div>
+</div>
+
+<!-- ====================== MODAL LOGIN ====================== -->
+<div class="modal-overlay" id="loginModal" onclick="if(event.target===this)cerrarLogin()">
+  <div class="modal-box" style="position:relative">
+    <button class="modal-close" onclick="cerrarLogin()">✕</button>
+    <img src="icono-talles/icono 400x400.webp" alt="Dubenji" style="width:52px;height:52px;border-radius:14px;margin:0 auto 16px;display:block;object-fit:contain;">
+    <h2>Acceso restringido</h2>
+    <p>Solo personal autorizado</p>
+    <input type="password" id="inputPassword" class="modal-input" placeholder="Contraseña…">
+    <button class="modal-btn" onclick="intentarLogin()">Ingresar</button>
+    <div class="modal-error" id="loginError"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Scripts -->
+<script src="productos.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="firebase-db.js"></script>
+<script src="script.js"></script>
+
+</body>
+</html>

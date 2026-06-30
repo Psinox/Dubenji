@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Presupuesto — Dubenji</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f8fafc; color: #1a1a2e; padding: 40px; font-size: 14px; }
+    .pres-container { max-width: 800px; margin: 0 auto; background: white; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,.08); padding: 40px; }
+    .pres-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; border-bottom: 3px solid #a855f7; padding-bottom: 20px; }
+    .pres-logo { display: flex; align-items: center; gap: 8px; }
+    .pres-logo img { height: 48px; width: auto; }
+    .pres-fecha { color: #64748b; font-size: 13px; }
+    .pres-titulo { font-size: 22px; font-weight: 700; color: #a855f7; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 24px; }
+    .pres-cliente { margin-bottom: 28px; }
+    .pres-cliente h2 { font-size: 18px; margin-bottom: 4px; }
+    .pres-cliente p { color: #64748b; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+    th { background: #1e1b4b; color: white; padding: 10px 14px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+    th:nth-child(2), th:nth-child(3), th:nth-child(4) { text-align: center; }
+    td { padding: 10px 14px; border-bottom: 1px solid #e2e8f0; }
+    td:nth-child(2), td:nth-child(3), td:nth-child(4) { text-align: center; }
+    td:nth-child(4) { font-weight: 600; color: #0f172a; }
+    .pres-total { text-align: right; font-size: 22px; font-weight: 700; padding: 16px 0; border-top: 2px solid #a855f7; margin-top: 8px; }
+    .pres-total span { color: #64748b; font-weight: 400; font-size: 16px; }
+    .pres-nota { margin-top: 28px; padding-top: 16px; border-top: 1px solid #e2e8f0; font-size: 13px; color: #64748b; }
+    .pres-footer { margin-top: 40px; text-align: center; color: #94a3b8; font-size: 12px; border-top: 1px solid #e2e8f0; padding-top: 16px; }
+    .btn-imprimir { display: inline-flex; align-items: center; gap: 8px; margin-top: 24px; padding: 12px 28px; background: #a855f7; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity .2s; }
+    .btn-imprimir:hover { opacity: .85; }
+    .no-data { text-align: center; padding: 60px 20px; color: #94a3b8; }
+    .no-data h2 { font-size: 22px; margin-bottom: 8px; color: #1a1a2e; }
+    .no-data a { color: #a855f7; }
+    @media print {
+      body { background: white; padding: 0; }
+      .pres-container { box-shadow: none; padding: 20px; border-radius: 0; }
+      .btn-imprimir { display: none; }
+    }
+    @media (max-width: 600px) {
+      body { padding: 16px; }
+      .pres-container { padding: 20px; }
+      .pres-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="app">
+  <div class="no-data" id="noData">
+    <h2>Presupuesto no encontrado</h2>
+    <p>El enlace no es válido o el presupuesto ya no está disponible.</p>
+    <p><a href="index.html">← Volver a Dubenji</a></p>
+  </div>
+  <div class="pres-container" id="presContainer" style="display:none">
+    <div class="pres-header">
+      <div class="pres-logo">
+        <img src="icono-talles/icono 400x400.webp" alt="Dubenji" onerror="this.style.display='none'">
+        <img src="icono-talles/icono 600x400.webp" alt="Dubenji" onerror="this.style.display='none'">
+      </div>
+      <div class="pres-fecha" id="presFecha"></div>
+    </div>
+    <div class="pres-titulo">Presupuesto</div>
+    <div class="pres-cliente">
+      <h2 id="presCliente"></h2>
+      <p id="presContacto"></p>
+    </div>
+    <table>
+      <thead><tr><th style="width:40px;">#</th><th>Producto</th><th style="width:70px;">Cant.</th><th style="width:110px;">Precio</th><th style="width:110px;">Subtotal</th></tr></thead>
+      <tbody id="presItems"></tbody>
+    </table>
+    <div class="pres-total" id="presTotal"></div>
+    <div class="pres-nota" id="presNota" style="display:none"></div>
+    <div class="pres-footer">Dubenji Indumentaria — Bella Vista, Corrientes</div>
+    <button class="btn-imprimir" onclick="window.print()">⬇️ Descargar PDF / Imprimir</button>
+  </div>
+</div>
+
+<script src="productos.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="firebase-db.js"></script>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+  if (id) {
+    (async () => {
+      await window.__READY;
+      const pres = getPresupuesto(id);
+      if (!pres) { document.getElementById('noData').textContent = 'Presupuesto no encontrado'; return; }
+      document.getElementById('noData').style.display = 'none';
+      document.getElementById('presContainer').style.display = 'block';
+      document.getElementById('presFecha').textContent = pres.fecha || new Date().toLocaleDateString('es-AR');
+      document.getElementById('presCliente').textContent = pres.cliente || 'Cliente';
+      if (pres.contacto) document.getElementById('presContacto').textContent = pres.contacto;
+      document.getElementById('presItems').innerHTML = (pres.items || []).map((item, i) => `
+        <tr>
+          <td>${i+1}</td>
+          <td>${item.descripcion || '—'}</td>
+          <td>${item.cantidad}</td>
+          <td>$${(item.precio||0).toLocaleString('es-AR')}</td>
+          <td>$${((item.precio||0)*(item.cantidad||1)).toLocaleString('es-AR')}</td>
+        </tr>`).join('');
+      const total = (pres.items || []).reduce((s, item) => s + ((item.precio||0)*(item.cantidad||1)), 0);
+      document.getElementById('presTotal').innerHTML = '<span>Total:</span> $' + total.toLocaleString('es-AR');
+      if (pres.nota) {
+        document.getElementById('presNota').style.display = 'block';
+        document.getElementById('presNota').innerHTML = '<strong>Nota:</strong> ' + pres.nota;
+      }
+    })();
+  }
+</script>
+</body>
+</html>

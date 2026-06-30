@@ -1,0 +1,1608 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — Dubenji Indumentaria</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚙️</text></svg>">
+  <style>
+    body { background: var(--dark); padding-bottom: 40px; }
+    #loginWall { display:flex; position:fixed; inset:0; background:var(--dark); z-index:9999; align-items:center; justify-content:center; }
+    #loginWall.hidden { display:none; }
+    #appContent { display:none; }
+    #appContent.visible { display:block; }
+    .admin-header { background:var(--dark-2); border-bottom:2px solid var(--azul); padding:14px 24px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; }
+    .admin-header h1 { font-family:var(--font-display); font-size:1.3rem; display:flex; align-items:center; gap:10px; }
+    .admin-header-links { display:flex; gap:10px; }
+    .admin-header-links a, .admin-header-links button { background:var(--dark-3); border:1px solid rgba(168,85,247,.3); color:var(--blanco); padding:8px 16px; border-radius:8px; font-size:.83rem; transition:all .2s; cursor:pointer; font-family:var(--font-body); }
+    .admin-header-links a:hover, .admin-header-links button:hover { border-color:var(--morado); }
+    .btn-logout-h { background:rgba(244,63,94,.1) !important; color:var(--rojo) !important; border-color:rgba(244,63,94,.3) !important; }
+    .btn-logout-h:hover { background:rgba(244,63,94,.2) !important; }
+    .admin-body { max-width:1100px; margin:0 auto; padding:28px 20px; display:grid; grid-template-columns:420px 1fr; gap:28px; align-items:start; }
+    .form-panel { background:var(--dark-2); border-radius:var(--radius); border:1px solid rgba(168,85,247,.15); padding:24px; position:sticky; top:80px; max-height:calc(100vh - 100px); overflow-y:auto; }
+    .form-panel h2 { font-family:var(--font-display); font-size:1.15rem; margin-bottom:18px; display:flex; align-items:center; gap:8px; }
+    .form-group { margin-bottom:14px; }
+    .form-group label { display:block; font-size:.78rem; font-weight:600; color:var(--gris); margin-bottom:5px; text-transform:uppercase; letter-spacing:.5px; }
+    .form-group input, .form-group select, .form-group textarea { width:100%; background:var(--dark-3); border:1px solid rgba(168,85,247,.2); color:var(--blanco); padding:9px 13px; border-radius:8px; font-size:.9rem; font-family:var(--font-body); outline:none; transition:border-color .2s; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color:var(--morado); }
+    .form-group textarea { resize:vertical; min-height:60px; }
+    .form-group select option { background:var(--dark-2); }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .form-row-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+
+    /* ——— COLORES SECTION ——— */
+    .colores-section { border-top:1px solid rgba(255,255,255,.07); padding-top:16px; margin-top:16px; }
+    .colores-section h3 { font-family:var(--font-display); font-size:1rem; margin-bottom:12px; color:var(--azul); }
+
+    .color-card { background:var(--dark-3); border-radius:8px; padding:14px; margin-bottom:12px; border:1px solid rgba(168,85,247,.15); }
+    .color-card-header { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+    .color-picker-wrap { display:flex; align-items:center; gap:6px; }
+    .color-picker-wrap input[type=color] { width:36px; height:36px; border-radius:6px; border:1px solid rgba(255,255,255,.15); padding:2px; background:var(--dark-3); cursor:pointer; }
+    .color-picker-wrap input[type=text] { width:100px; background:var(--dark-2); border:1px solid rgba(168,85,247,.2); color:var(--blanco); padding:7px 10px; border-radius:6px; font-size:.82rem; outline:none; }
+    .color-picker-wrap input[type=text]:focus { border-color:var(--morado); }
+    .btn-remove-color { background:rgba(244,63,94,.1); color:var(--rojo); border:none; width:28px; height:28px; border-radius:6px; font-size:.8rem; cursor:pointer; margin-left:auto; transition:background .2s; }
+    .btn-remove-color:hover { background:rgba(244,63,94,.22); }
+
+    .color-imgs { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin:8px 0; }
+    .color-img-slot { position:relative; aspect-ratio:1; }
+    .color-img-preview { width:100%; height:100%; background:var(--dark-2); border-radius:6px; border:1px dashed rgba(168,85,247,.25); display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden; font-size:.6rem; color:var(--gris); text-align:center; transition:border-color .2s; }
+    .color-img-preview:hover { border-color:var(--morado); }
+    .color-img-preview img { width:100%; height:100%; object-fit:cover; }
+    .color-img-remove { position:absolute; top:-4px; right:-4px; width:18px; height:18px; border-radius:50%; background:var(--rojo); color:white; border:none; font-size:.55rem; cursor:pointer; display:none; align-items:center; justify-content:center; z-index:5; }
+    .color-img-remove.show { display:flex; }
+
+    .talles-grid { display:grid; gap:4px; margin-top:6px; }
+    .talle-cell { text-align:center; }
+    .talle-cell label { font-size:.65rem; font-weight:600; color:var(--gris); display:block; margin-bottom:2px; text-transform:none; letter-spacing:0; }
+    .talle-cell input[type=number] { width:100%; background:var(--dark-2); border:1px solid rgba(168,85,247,.15); color:var(--blanco); padding:5px; border-radius:4px; font-size:.78rem; text-align:center; outline:none; }
+    .talle-cell input[type=number]:focus { border-color:var(--morado); }
+    .talle-cell .talle-toggle { display:flex; align-items:center; justify-content:center; gap:3px; margin-top:3px; }
+    .talle-cell .talle-toggle input[type=checkbox] { width:14px; height:14px; accent-color:var(--morado); cursor:pointer; margin:0; }
+    .talle-cell .talle-toggle label { font-size:.6rem; color:var(--gris); cursor:pointer; }
+
+    .btn-add-color { width:100%; padding:8px; background:transparent; color:var(--gris); border:1px dashed rgba(168,85,247,.3); border-radius:8px; font-size:.82rem; cursor:pointer; transition:all .2s; margin-bottom:8px; }
+    .btn-add-color:hover { border-color:var(--morado); color:var(--blanco); }
+
+    .btn-guardar { width:100%; background:linear-gradient(90deg,var(--morado),#d946ef); color:white; padding:11px; border-radius:8px; font-size:.95rem; font-weight:700; cursor:pointer; transition:opacity .2s, transform .15s; margin-top:6px; }
+    .btn-guardar:hover { opacity:.9; transform:translateY(-1px); }
+    .btn-nuevo { width:100%; background:transparent; color:var(--gris); padding:9px; border-radius:8px; font-size:.88rem; font-weight:500; border:1px solid rgba(255,255,255,.1); cursor:pointer; margin-top:8px; transition:all .2s; }
+    .btn-nuevo:hover { border-color:var(--morado); color:var(--blanco); }
+
+    .admin-search { background:var(--dark-3); border:1px solid rgba(168,85,247,.2); color:var(--blanco); padding:9px 14px; border-radius:8px; font-size:.88rem; width:100%; margin-bottom:14px; outline:none; font-family:var(--font-body); }
+    .admin-search:focus { border-color:var(--morado); }
+
+    .list-panel h2 { font-family:var(--font-display); font-size:1.15rem; margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; }
+    .list-tabs { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+    .list-tab { padding:7px 18px; background:var(--dark-3); border:1px solid rgba(168,85,247,.15); color:var(--gris); border-radius:40px; font-size:.82rem; font-weight:600; cursor:pointer; transition:all .2s; }
+    .list-tab.active { background:var(--morado); border-color:var(--morado); color:white; }
+    .counter { font-size:.82rem; color:var(--gris); font-family:var(--font-body); font-weight:400; }
+
+    .admin-lista { display:flex; flex-direction:column; gap:10px; }
+
+    .admin-card { background:var(--dark-2); border-radius:var(--radius); border:1px solid rgba(255,255,255,.06); display:grid; grid-template-columns:60px 1fr auto; gap:12px; align-items:start; padding:12px; transition:border-color .2s; }
+    .admin-card:hover { border-color:rgba(168,85,247,.2); }
+    .admin-card.editando { border-color:var(--morado); }
+    .admin-card.pausado { border-style:dashed; border-color:rgba(245,158,11,.35); opacity:.7; }
+    .admin-card img { width:60px; height:45px; object-fit:cover; border-radius:6px; background:var(--dark-3); }
+    .admin-card-info { min-width:0; }
+    .admin-card-nombre { font-weight:600; font-size:.88rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .admin-card-meta { font-size:.75rem; color:var(--gris); margin-top:2px; }
+    .admin-card-precio { font-family:var(--font-display); color:var(--azul-glow); font-weight:600; font-size:.88rem; }
+    .admin-card-colores { display:flex; gap:4px; margin-top:6px; flex-wrap:wrap; }
+    .admin-card-color-dot { width:14px; height:14px; border-radius:50%; display:inline-block; border:1px solid rgba(255,255,255,.1); }
+    .admin-card-stock-info { font-size:.68rem; color:var(--gris); margin-top:2px; }
+    .pausado-tag { background:rgba(245,158,11,.15); color:#f59e0b; border:1px solid rgba(245,158,11,.3); padding:1px 6px; border-radius:4px; font-size:.68rem; font-weight:700; margin-left:6px; }
+
+    .admin-card-actions { display:flex; flex-direction:column; gap:5px; }
+    .btn-edit { padding:5px 10px; border-radius:5px; font-size:.75rem; font-weight:600; background:rgba(168,85,247,.12); color:var(--morado); border:none; cursor:pointer; transition:background .2s; }
+    .btn-edit:hover { background:rgba(168,85,247,.25); }
+    .btn-del { padding:5px 10px; border-radius:5px; font-size:.75rem; font-weight:600; background:rgba(244,63,94,.1); color:var(--rojo); border:none; cursor:pointer; transition:background .2s; }
+    .btn-del:hover { background:rgba(244,63,94,.22); }
+    .btn-toggle { padding:5px 10px; border-radius:5px; font-size:.75rem; font-weight:600; border:none; cursor:pointer; transition:background .2s; }
+    .btn-toggle.activo { background:rgba(245,158,11,.12); color:#f59e0b; }
+    .btn-toggle.activo:hover { background:rgba(245,158,11,.25); }
+    .btn-toggle.inactivo { background:rgba(16,185,129,.12); color:var(--verde); }
+    .btn-toggle.inactivo:hover { background:rgba(16,185,129,.25); }
+
+    .export-bar { margin-top:20px; padding-top:16px; border-top:1px solid rgba(255,255,255,.07); display:flex; gap:8px; flex-wrap:wrap; }
+    .btn-export { flex:1; min-width:100px; padding:9px; border-radius:8px; font-size:.82rem; font-weight:600; border:1px solid rgba(168,85,247,.22); background:var(--dark-3); color:var(--blanco); cursor:pointer; transition:all .2s; }
+    .btn-export:hover { border-color:var(--morado); background:rgba(168,85,247,.08); }
+    .btn-export.peligro { color:var(--rojo); border-color:rgba(244,63,94,.3); }
+    .btn-export.peligro:hover { background:rgba(244,63,94,.1); }
+
+    .login-wall-box { background:var(--dark-2); border:1px solid rgba(168,85,247,.25); border-radius:var(--radius); padding:40px 32px; width:100%; max-width:380px; text-align:center; }
+    .login-wall-box .lw-icon { width:56px; height:56px; background:linear-gradient(135deg,#6b21a8,#d946ef); border-radius:14px; display:flex; align-items:center; justify-content:center; margin:0 auto 16px; }
+    .login-wall-box h2 { font-family:var(--font-display); font-size:1.6rem; margin-bottom:6px; }
+    .login-wall-box p { color:var(--gris); font-size:.88rem; margin-bottom:24px; }
+    .lw-input { width:100%; background:var(--dark-3); border:1px solid rgba(168,85,247,.2); color:var(--blanco); padding:12px 16px; border-radius:8px; font-size:1rem; outline:none; margin-bottom:12px; font-family:var(--font-body); transition:border-color .2s; }
+    .lw-input:focus { border-color:var(--morado); }
+    .lw-btn { width:100%; background:linear-gradient(90deg,var(--morado),#d946ef); color:white; padding:12px; border-radius:8px; font-size:1rem; font-weight:700; cursor:pointer; }
+    .lw-error { color:var(--rojo); font-size:.85rem; margin-top:10px; min-height:20px; }
+    .lw-back { margin-top:14px; font-size:.82rem; color:var(--gris); }
+    .lw-back a { color:var(--morado); }
+
+    /* ——— CUPONES MODAL ——— */
+    .cupones-modal { background:var(--dark-2); border:1px solid rgba(168,85,247,.2); border-radius:var(--radius); width:95%; max-width:600px; max-height:90vh; overflow-y:auto; padding:28px 24px; position:relative; animation:fadeIn .25s ease backwards; }
+    .cupones-modal h2 { font-family:var(--font-display); font-size:1.3rem; margin-bottom:20px; display:flex; align-items:center; gap:8px; }
+    .cupones-modal-close { position:absolute; top:14px; right:16px; background:none; border:none; color:var(--gris); font-size:1.4rem; cursor:pointer; }
+    .cupones-modal-close:hover { color:var(--blanco); }
+    .cupon-form { display:grid; grid-template-columns:1fr 1fr auto; gap:10px; align-items:end; margin-bottom:20px; padding-bottom:20px; border-bottom:1px solid rgba(255,255,255,.07); }
+    .cupon-form .form-group { margin-bottom:0; }
+    .cupon-form label { font-size:.72rem; }
+    .cupon-form input { padding:8px 12px; font-size:.85rem; }
+    .cupon-list { display:flex; flex-direction:column; gap:8px; }
+    .cupon-card { background:var(--dark-3); border-radius:8px; border:1px solid rgba(255,255,255,.06); padding:12px 14px; display:grid; grid-template-columns:1fr auto auto auto auto; gap:10px; align-items:center; }
+    .cupon-card.pausado { opacity:.55; border-style:dashed; border-color:rgba(245,158,11,.35); }
+    .cupon-codigo { font-family:var(--font-display); font-weight:700; font-size:1rem; letter-spacing:1px; color:var(--azul-glow); }
+    .cupon-pct { background:rgba(16,185,129,.12); color:var(--verde); padding:2px 8px; border-radius:4px; font-weight:700; font-size:.8rem; }
+    .cupon-usos { font-size:.75rem; color:var(--gris); }
+    .cupon-card-actions { display:flex; gap:5px; }
+    .cupon-card-actions button { padding:4px 9px; border-radius:5px; font-size:.7rem; font-weight:600; border:none; cursor:pointer; transition:background .15s; }
+    .btn-cupon-toggle { background:rgba(245,158,11,.12); color:#f59e0b; }
+    .btn-cupon-toggle:hover { background:rgba(245,158,11,.25); }
+    .btn-cupon-toggle.activo { background:rgba(16,185,129,.12); color:var(--verde); }
+    .btn-cupon-toggle.activo:hover { background:rgba(16,185,129,.25); }
+    .btn-cupon-del { background:rgba(244,63,94,.1); color:var(--rojo); }
+    .btn-cupon-del:hover { background:rgba(244,63,94,.22); }
+
+    /* ——— PRESUPUESTO ——— */
+    .presupuesto-modal { max-width:900px !important; }
+    .presupuesto-wrap { font-size:.85rem; }
+    .presupuesto-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding-bottom:16px; border-bottom:2px solid rgba(168,85,247,.2); }
+    .presupuesto-logo { display:flex; align-items:center; gap:6px; }
+    .presupuesto-fecha { font-size:.82rem; color:var(--gris); font-weight:500; }
+    .presupuesto-cliente { margin-bottom:16px; }
+    .presupuesto-items { margin-bottom:16px; }
+    .pres-item { display:grid; grid-template-columns:24px 1fr 60px 100px 110px 28px; gap:6px; align-items:center; padding:6px 0; border-bottom:1px solid rgba(255,255,255,.05); }
+    .pres-item-num { font-size:.78rem; color:var(--gris); font-weight:600; text-align:center; }
+    .pres-item-subtotal { text-align:right; font-weight:600; font-size:.88rem; color:var(--azul-glow); padding-right:4px; }
+    .pres-item-del { background:none; border:none; color:var(--rojo); font-size:.75rem; cursor:pointer; padding:4px; opacity:.5; transition:opacity .2s; }
+    .pres-item-del:hover { opacity:1; }
+    .presupuesto-total { display:flex; justify-content:space-between; align-items:center; padding:16px 0; border-top:2px solid rgba(168,85,247,.3); font-family:var(--font-display); font-size:1.3rem; font-weight:700; margin-bottom:16px; }
+    .presupuesto-total span:last-child { color:var(--azul-glow); font-size:1.5rem; }
+    .presupuesto-acciones { display:flex; gap:8px; flex-wrap:wrap; }
+
+    @media (max-width:700px) {
+      .pres-item { grid-template-columns:24px 1fr 50px 80px 80px 24px; gap:4px; }
+      .pres-item-precio input { width:70px !important; }
+      .pres-item-subtotal { font-size:.78rem; }
+    }
+
+    @media (max-width:800px) { .admin-body { grid-template-columns:1fr; } .form-panel { position:static; max-height:none; } }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN WALL -->
+<div id="loginWall">
+  <div class="login-wall-box">
+    <div class="lw-icon">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+        <path d="M20 7l-8-4-8 4"/><path d="M4 7v9l8 4 8-4V7"/><path d="M4 7l8 4 8-4"/><path d="M12 11v9"/>
+      </svg>
+    </div>
+    <h2>Panel Admin</h2>
+    <p>Área exclusiva para el dueño de Dubenji.<br>Ingresá tu contraseña para continuar.</p>
+    <input type="password" id="lwPassword" class="lw-input" placeholder="Contraseña…"
+      onkeydown="if(event.key==='Enter')lwLogin()">
+    <button class="lw-btn" onclick="lwLogin()">Ingresar al panel</button>
+    <div class="lw-error" id="lwError"></div>
+    <div class="lw-back">← <a href="index.html">Volver al sitio</a></div>
+  </div>
+</div>
+
+<!-- APP CONTENT -->
+<div id="appContent">
+
+  <!-- HEADER ADMIN -->
+  <div class="admin-header">
+    <h1>⚙️ Panel de Administración — <span style="color:var(--morado)">Dubenji</span></h1>
+    <div class="admin-header-links">
+      <button onclick="abrirModalCupones()" style="background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.3);color:var(--verde)">🏷️ Cupones</button>
+      <button onclick="abrirModalGuias()" style="background:rgba(168,85,247,.1);border-color:rgba(168,85,247,.3);color:var(--morado)">📏 Guías</button>
+      <button onclick="abrirModalPackTiers()" style="background:rgba(107,114,128,.1);border-color:rgba(107,114,128,.3);color:#9ca3af">📦 Paquetes</button>
+      <button onclick="abrirModalEfemerides()" style="background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3);color:#ef4444">🎉 Efemérides</button>
+      <button onclick="abrirModalPresupuesto()" style="background:rgba(14,165,233,.1);border-color:rgba(14,165,233,.3);color:#0ea5e9">📋 Presupuesto</button>
+      <button onclick="abrirModalCredenciales()" style="background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.3);color:#f59e0b">🔑 Credenciales</button>
+      <a href="index.html" target="_blank">👁 Ver sitio</a>
+      <button onclick="lwLogout()" class="btn-logout-h">🔒 Cerrar sesión</button>
+    </div>
+  </div>
+
+  <!-- CUPONES MODAL -->
+  <div class="modal-overlay" id="cuponesModal" onclick="if(event.target===this)cerrarModalCupones()">
+    <div class="cupones-modal">
+      <button class="cupones-modal-close" onclick="cerrarModalCupones()">✕</button>
+      <h2>🏷️ Cupones de descuento</h2>
+      <div class="cupon-form">
+        <div class="form-group">
+          <label>Código</label>
+          <input type="text" id="fcCodigo" placeholder="Ej: DUBENJI10" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()">
+        </div>
+        <div class="form-group">
+          <label>% descuento</label>
+          <input type="number" id="fcPorcentaje" placeholder="10" min="1" max="100" style="text-align:center">
+        </div>
+        <button class="btn-guardar" onclick="guardarCupon()" style="padding:8px 16px;font-size:.85rem;white-space:nowrap">➕ Crear cupón</button>
+      </div>
+      <div class="cupon-list" id="cuponList"></div>
+    </div>
+  </div>
+
+  <!-- GUÍA DE TALLES MODAL -->
+  <div class="modal-overlay" id="guiasModal" onclick="if(event.target===this)cerrarModalGuias()">
+    <div class="cupones-modal" style="max-width:900px">
+      <button class="cupones-modal-close" onclick="cerrarModalGuias()">✕</button>
+      <h2>📏 Guías de Talles</h2>
+      <p style="color:var(--gris);font-size:.85rem;margin-bottom:20px;">Modificá las medidas de cada guía. Los cambios se aplican automáticamente al sitio.</p>
+      <div id="guiasEditor"></div>
+    </div>
+  </div>
+
+  <!-- PACK TIERS MODAL -->
+  <div class="modal-overlay" id="packTiersModal" onclick="if(event.target===this)cerrarModalPackTiers()">
+    <div class="cupones-modal" style="max-width:600px">
+      <button class="cupones-modal-close" onclick="cerrarModalPackTiers()">✕</button>
+      <h2>📦 Clasificación de Paquetes</h2>
+      <p style="color:var(--gris);font-size:.85rem;margin-bottom:20px;">Administrá las clasificaciones de paquetes (Base, Estándar, Premium). Aparecen como etiqueta en las cards de los paquetes.</p>
+      <div id="packTiersEditor"></div>
+    </div>
+  </div>
+
+  <!-- CREDENCIALES MODAL -->
+  <div class="modal-overlay" id="credencialesModal" onclick="if(event.target===this)cerrarModalCredenciales()">
+    <div class="cupones-modal" style="max-width:480px">
+      <button class="cupones-modal-close" onclick="cerrarModalCredenciales()">✕</button>
+      <h2>🔑 Credenciales de Admin</h2>
+      <p style="color:var(--gris);font-size:.85rem;margin-bottom:20px;">Cambiá la contraseña para acceder al panel.</p>
+      <div class="form-group">
+        <label>Contraseña actual</label>
+        <input type="password" id="fPassActual" placeholder="Ingresá la contraseña actual">
+      </div>
+      <div class="form-group">
+        <label>Nueva contraseña</label>
+        <input type="password" id="fPassNueva" placeholder="Nueva contraseña">
+      </div>
+      <div class="form-group">
+        <label>Confirmar nueva contraseña</label>
+        <input type="password" id="fPassConfirm" placeholder="Repetí la nueva contraseña">
+      </div>
+      <button class="btn-guardar" onclick="guardarCredenciales()">🔐 Guardar cambios</button>
+      <div id="credencialesError" style="color:var(--rojo);font-size:.85rem;margin-top:10px;min-height:20px"></div>
+    </div>
+  </div>
+
+  <!-- PRESUPUESTO MODAL -->
+  <div class="modal-overlay" id="presupuestoModal" onclick="if(event.target===this)cerrarModalPresupuesto()">
+    <div class="cupones-modal presupuesto-modal" style="max-width:900px">
+      <button class="cupones-modal-close" onclick="cerrarModalPresupuesto()">✕</button>
+      <div class="presupuesto-wrap" id="presupuestoWrap">
+        <div class="presupuesto-header">
+          <div class="presupuesto-logo">
+            <img src="icono-talles/icono 400x400.webp" alt="Dubenji" style="height:50px;width:auto;">
+            <img src="icono-talles/icono 600x400.webp" alt="Dubenji" style="height:36px;width:auto;margin-left:6px;">
+          </div>
+          <div class="presupuesto-fecha" id="presupuestoFecha"></div>
+        </div>
+        <div class="presupuesto-cliente">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Cliente</label>
+              <input type="text" id="presCliente" placeholder="Nombre del cliente">
+            </div>
+            <div class="form-group">
+              <label>Contacto</label>
+              <input type="text" id="presContacto" placeholder="Teléfono / Email">
+            </div>
+          </div>
+        </div>
+        <div class="presupuesto-items">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <h3 style="font-family:var(--font-display);font-size:1rem;color:var(--blanco);">Productos</h3>
+            <button class="btn-add-color" onclick="presAgregarItem()" style="width:auto;padding:6px 14px;margin:0;">➕ Agregar</button>
+          </div>
+          <div id="presupuestoItems"></div>
+        </div>
+        <div class="presupuesto-nota">
+          <div class="form-group">
+            <label>Nota / Observaciones</label>
+            <textarea id="presNota" placeholder="Ej: Válido por 7 días, forma de pago, etc." style="min-height:50px;"></textarea>
+          </div>
+        </div>
+        <div class="presupuesto-total" id="presupuestoTotal">
+          <span>Total:</span>
+          <span>$ 0</span>
+        </div>
+        <div class="presupuesto-acciones">
+          <button class="btn-export" onclick="presDescargarPDF()" style="border-color:#0ea5e3;color:#0ea5e3">⬇️ Descargar PDF</button>
+          <button class="btn-export" onclick="presCompartirEnlace()" style="border-color:var(--verde);color:var(--verde)">🔗 Copiar enlace</button>
+          <button class="btn-export" onclick="presNuevo()" style="border-color:var(--gris);color:var(--gris)">🆕 Nuevo presupuesto</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EFEMÉRIDES MODAL -->
+  <div class="modal-overlay" id="efemeridesModal" onclick="if(event.target===this)cerrarModalEfemerides()">
+    <div class="cupones-modal" style="max-width:550px">
+      <button class="cupones-modal-close" onclick="cerrarModalEfemerides()">✕</button>
+      <h2>🎉 Efemérides</h2>
+      <p style="color:var(--gris);font-size:.82rem;margin-bottom:16px;">Productos de temporada limitada. Activá una efeméride para que aparezca en el menú.</p>
+      <div class="cupon-form" style="gap:8px;grid-template-columns:1fr auto;">
+        <input type="text" id="efeNombre" placeholder="Nombre de la efeméride (ej: Mundial)">
+        <button class="btn-guardar" onclick="guardarEfemeride()" style="padding:8px 16px;font-size:.85rem;white-space:nowrap">➕ Crear</button>
+      </div>
+      <div class="cupon-list" id="efemeridesList"></div>
+    </div>
+  </div>
+
+  <div class="admin-body">
+
+    <!-- FORM -->
+    <div class="form-panel">
+      <h2 id="formTitle">➕ Agregar producto</h2>
+      <input type="hidden" id="editId">
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Tipo *</label>
+          <select id="fTipo">
+            <option value="individual">👕 Individual</option>
+            <option value="paquete">📋 Paquete</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Categoría *</label>
+          <select id="fCategoria"></select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Nombre del producto *</label>
+        <input type="text" id="fNombre" placeholder="Ej: Remera Oversize Dubenji">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Precio $ ARS (0 = Consultar)</label>
+          <input type="number" id="fPrecio" placeholder="8500" min="0" step="100">
+        </div>
+        <div class="form-group">
+          <label>Badge / Etiqueta</label>
+          <select id="fBadge">
+            <option value="">Sin etiqueta</option>
+            <option value="OFERTA">OFERTA</option>
+            <option value="NUEVO">NUEVO</option>
+            <option value="MÁS VENDIDO">MÁS VENDIDO</option>
+            <option value="COMBO">COMBO</option>
+            <option value="CONSULTAR">CONSULTAR</option>
+          </select>
+        </div>
+        <div class="form-group" id="packTierGroup" style="display:none">
+          <label>Clasificación de paquete</label>
+          <select id="fPackTier">
+            <option value="">Sin clasificación</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Guía de talles</label>
+          <select id="fGuiaTalle"></select>
+        </div>
+        <div class="form-group">
+          <label>Efeméride (temporada)</label>
+          <select id="fEfemeride">
+            <option value="">Sin efeméride</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Imagen principal (ruta)</label>
+        <input type="text" id="fImagen" placeholder="Ej: icono-talles/productos/1.webp o dejar vacío para automático">
+      </div>
+
+      <div class="form-group">
+        <label>Descripción *</label>
+        <textarea id="fDesc" placeholder="Descripción del producto..."></textarea>
+      </div>
+
+      <!-- COLORES / TALLES -->
+      <div class="colores-section">
+        <h3>🎨 Colores y Talles</h3>
+        <div id="coloresContainer"></div>
+        <button class="btn-add-color" onclick="agregarColorForm()">➕ Agregar color</button>
+      </div>
+
+      <div class="form-group" style="display:flex;align-items:center;gap:10px;margin-top:4px;">
+        <input type="checkbox" id="fActivo" checked style="width:18px;height:18px;accent-color:var(--morado)">
+        <label for="fActivo" style="text-transform:none;font-size:.9rem;letter-spacing:0;cursor:pointer;">
+          Producto activo (visible en el sitio)
+        </label>
+      </div>
+
+      <button class="btn-guardar" onclick="guardarProducto()">💾 Guardar producto</button>
+      <button class="btn-nuevo" onclick="resetForm()">🆕 Nuevo producto</button>
+    </div>
+
+    <!-- LISTA -->
+    <div class="list-panel">
+      <h2>📦 Productos <span class="counter" id="counter"></span></h2>
+
+      <div class="list-tabs">
+        <button class="list-tab active" onclick="setListTab('todos',this)">🛒 Todos</button>
+        <button class="list-tab" onclick="setListTab('individual',this)">👕 Individuales</button>
+        <button class="list-tab" onclick="setListTab('paquete',this)">📋 Paquetes</button>
+        <button class="list-tab" onclick="setListTab('pausado',this)">⏸ Pausados</button>
+      </div>
+
+      <input type="text" class="admin-search" id="adminSearch"
+        placeholder="🔍 Buscar en lista…" oninput="renderAdminLista()">
+
+      <div class="admin-lista" id="adminLista"></div>
+
+      <div class="export-bar">
+        <button class="btn-export" onclick="exportarJSON()">⬇️ Exportar JSON</button>
+        <button class="btn-export" onclick="importarJSON()">⬆️ Importar JSON</button>
+        <button class="btn-export peligro" onclick="resetearDatos()">🔄 Restablecer</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script src="productos.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="firebase-db.js"></script>
+<script>
+// =============================================
+// ADMIN — AUTH
+// =============================================
+const ADMIN_PASSWORD  = "dubenji2026";
+const ADMIN_URL_TOKEN = "dubenji-admin-2026";
+let listTab = 'todos';
+let adminColorsData = [];
+
+const urlParams = new URLSearchParams(window.location.search);
+const urlToken  = urlParams.get('key');
+
+if (urlToken !== ADMIN_URL_TOKEN && sessionStorage.getItem('gag_admin') !== '1') {
+  window.location.replace('index.html');
+}
+
+function lwLogout() {
+  sessionStorage.removeItem('gag_admin');
+  window.location.href = 'index.html';
+}
+
+document.getElementById('lwPassword').addEventListener('keydown', e => {
+  if (e.key === 'Enter') lwLogin();
+});
+
+if (sessionStorage.getItem('gag_admin') === '1') {
+  document.getElementById('loginWall').classList.add('hidden');
+  document.getElementById('appContent').classList.add('visible');
+  history.replaceState(null, '', 'admin.html');
+  window.__READY.then(initAdmin);
+}
+
+// =============================================
+// INIT
+// =============================================
+function renderGuiaTalleOptions() {
+  const sel = document.getElementById('fGuiaTalle');
+  if (!sel) return;
+  const val = sel.value;
+  const guias = getGuiasTalles();
+  const opt = [{ value: '', label: 'Automática (según categoría)' }];
+  Object.keys(guias).forEach(k => opt.push({ value: k, label: guias[k].nombre }));
+  sel.innerHTML = opt.map(o => `<option value="${o.value}"${o.value===val?' selected':''}>${o.label}</option>`).join('');
+}
+
+function togglePackTierField() {
+  const tipo = document.getElementById('fTipo').value;
+  const cat = document.getElementById('fCategoria').value;
+  const group = document.getElementById('packTierGroup');
+  const badgeGroup = document.getElementById('fBadge').closest('.form-group');
+  if (tipo === 'paquete' && cat === 'packs') {
+    group.style.display = '';
+    if (badgeGroup) badgeGroup.style.display = 'none';
+  } else {
+    group.style.display = 'none';
+    if (badgeGroup) badgeGroup.style.display = '';
+  }
+}
+
+function initAdmin() {
+  initCategorias();
+  renderAdminLista();
+  renderGuiaTalleOptions();
+  renderPackTierOptions();
+  togglePackTierField();
+  document.getElementById('adminSearch').addEventListener('input', renderAdminLista);
+  document.getElementById('fTipo').addEventListener('change', togglePackTierField);
+  document.getElementById('fCategoria').addEventListener('change', togglePackTierField);
+  document.getElementById('fGuiaTalle').addEventListener('change', function() {
+    adminColorsData.forEach(c => {
+      const tallesList = getTallesFromSelector();
+      tallesList.forEach(t => { if (!c.talles[t]) c.talles[t] = { stock: 0, activo: true }; });
+    });
+    renderColoresForm();
+  });
+  window.__onFbSync = function() {
+    if (typeof renderAdminLista === 'function') renderAdminLista();
+    if (typeof renderGuiaTalleOptions === 'function') renderGuiaTalleOptions();
+    if (typeof renderPackTierOptions === 'function') renderPackTierOptions();
+  };
+}
+
+function toast(msg, tipo='ok') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = tipo === 'ok' ? '#10b981' : '#f43f5e';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function initCategorias() {
+  const s = document.getElementById('fCategoria');
+  s.innerHTML = CATEGORIAS.map(c => `<option value="${c.id}">${c.icono} ${c.nombre}</option>`).join('');
+  const ef = document.getElementById('fEfemeride');
+  if (ef) {
+    const efems = getEfemerides();
+    ef.innerHTML = '<option value="">Sin efeméride</option>' +
+      efems.map(e => `<option value="${e.id}">🎉 ${e.nombre}</option>`).join('');
+  }
+}
+
+function setListTab(tab, btn) {
+  listTab = tab;
+  document.querySelectorAll('.list-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAdminLista();
+}
+
+// =============================================
+// COLORES FORM
+// =============================================
+
+function getTallesFromSelector() {
+  const key = document.getElementById('fGuiaTalle').value;
+  return window.getTallesFromGuideKey ? window.getTallesFromGuideKey(key) : TALLES;
+}
+
+function agregarColorForm(nombre, hex, imagenes, talles) {
+  const idx = adminColorsData.length;
+  const tallesList = getTallesFromSelector();
+  adminColorsData.push({
+    nombre: nombre || '',
+    hex: hex || '#6b21a8',
+    imagenes: imagenes || [null, null, null],
+    talles: talles || Object.fromEntries(tallesList.map(t => [t, { stock: 0, activo: true }]))
+  });
+  renderColoresForm();
+}
+
+function eliminarColorForm(idx) {
+  adminColorsData.splice(idx, 1);
+  renderColoresForm();
+}
+
+function actualizarColorNombre(idx, val) {
+  adminColorsData[idx].nombre = val;
+}
+
+function actualizarColorHex(idx, val) {
+  adminColorsData[idx].hex = val;
+}
+
+function actualizarColorImgSlot(idxColor, slotIdx, dataUrl) {
+  adminColorsData[idxColor].imagenes[slotIdx] = dataUrl;
+  renderColoresForm();
+}
+
+function eliminarColorImg(idxColor, slotIdx) {
+  adminColorsData[idxColor].imagenes[slotIdx] = null;
+  renderColoresForm();
+}
+
+function actualizarStockTalle(idxColor, talle, val) {
+  if (!adminColorsData[idxColor].talles[talle]) {
+    adminColorsData[idxColor].talles[talle] = { stock: 0, activo: true };
+  }
+  adminColorsData[idxColor].talles[talle].stock = parseInt(val) || 0;
+}
+
+function actualizarActivoTalle(idxColor, talle, checked) {
+  if (!adminColorsData[idxColor].talles[talle]) {
+    adminColorsData[idxColor].talles[talle] = { stock: 0, activo: true };
+  }
+  adminColorsData[idxColor].talles[talle].activo = checked;
+}
+
+function renderColoresForm() {
+  const container = document.getElementById('coloresContainer');
+  if (!container) return;
+  const tallesList = getTallesFromSelector();
+  if (!adminColorsData.length) {
+    container.innerHTML = '<p style="color:var(--gris);font-size:.8rem;text-align:center;padding:12px">Agregá al menos un color con sus talles</p>';
+    return;
+  }
+  container.innerHTML = adminColorsData.map((color, idx) => `
+    <div class="color-card">
+      <div class="color-card-header">
+        <div class="color-picker-wrap">
+          <input type="color" value="${color.hex}" onchange="actualizarColorHex(${idx}, this.value); renderColoresForm()">
+          <input type="text" value="${color.nombre}" placeholder="Nombre color" onchange="actualizarColorNombre(${idx}, this.value)">
+        </div>
+        <button class="btn-remove-color" onclick="eliminarColorForm(${idx})">✕</button>
+      </div>
+
+      <div style="font-size:.7rem;color:var(--gris);margin-bottom:4px;">Imágenes del color:</div>
+      <div class="color-imgs">
+        ${[0,1,2].map(slot => `
+          <div class="color-img-slot">
+            <input type="file" accept="image/*" id="colorImg${idx}_${slot}" hidden
+              onchange="subirImgColor(${idx}, ${slot}, this)">
+            <div class="color-img-preview" onclick="document.getElementById('colorImg${idx}_${slot}').click()">
+              ${color.imagenes[slot]
+                ? `<img src="${color.imagenes[slot]}" alt="">`
+                : `<span>📷<br>Foto ${slot+1}</span>`}
+            </div>
+            <button class="color-img-remove ${color.imagenes[slot] ? 'show' : ''}"
+              onclick="eliminarColorImg(${idx}, ${slot})">✕</button>
+          </div>
+        `).join('')}
+      </div>
+
+      <div style="font-size:.7rem;color:var(--gris);margin-bottom:4px;">Stock por talle:</div>
+      <div class="talles-grid" style="grid-template-columns:repeat(${tallesList.length},1fr)">
+        ${tallesList.map(t => {
+          const td = color.talles[t] || { stock: 0, activo: true };
+          return `
+            <div class="talle-cell">
+              <label>${t}</label>
+              <input type="number" value="${td.stock}" min="0" step="1"
+                onchange="actualizarStockTalle(${idx}, '${t}', this.value)">
+              <div class="talle-toggle">
+                <input type="checkbox" ${td.activo ? 'checked' : ''}
+                  onchange="actualizarActivoTalle(${idx}, '${t}', this.checked)">
+                <label>Activo</label>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+const CLOUD_NAME = 'dmdpzjwom';
+const CLOUD_PRESET = 'dubenji_web';
+
+function subirImgColor(idxColor, slotIdx, input) {
+  if (!input.files || !input.files[0]) return;
+  const preview = input.parentElement.querySelector('.color-img-preview');
+  if (preview) preview.innerHTML = '<span style="font-size:.6rem">⏳ Subiendo…</span>';
+  const fd = new FormData();
+  fd.append('file', input.files[0]);
+  fd.append('upload_preset', CLOUD_PRESET);
+  fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+    method: 'POST', body: fd
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.secure_url) actualizarColorImgSlot(idxColor, slotIdx, data.secure_url);
+    else toast('Error al subir imagen', 'error');
+  })
+  .catch(() => toast('Error de conexión al subir imagen', 'error'));
+}
+
+// =============================================
+// CRUD
+// =============================================
+function guardarProducto() {
+  const id       = document.getElementById('editId').value;
+  const tipo     = document.getElementById('fTipo').value;
+  const nombre   = document.getElementById('fNombre').value.trim();
+  const categoria= document.getElementById('fCategoria').value;
+  const precio   = parseInt(document.getElementById('fPrecio').value) || 0;
+  const descripcion = document.getElementById('fDesc').value.trim();
+  const activo   = document.getElementById('fActivo').checked;
+  const guiaTalle = document.getElementById('fGuiaTalle').value;
+  const imagen = document.getElementById('fImagen').value.trim();
+
+  if (!nombre || !descripcion) { toast('Completá nombre y descripción', 'error'); return; }
+
+  const esPaquete = tipo === 'paquete';
+  const esPack = esPaquete && categoria === 'packs';
+  const packTier = document.getElementById('fPackTier').value;
+  const badge = esPack && packTier ? packTier : document.getElementById('fBadge').value;
+  const colores = adminColorsData.filter(c => c.nombre.trim());
+  if (!esPaquete && !colores.length) { toast('Agregá al menos un color con nombre', 'error'); return; }
+
+  const coloresClean = colores.map(c => ({
+    nombre: c.nombre,
+    hex: c.hex,
+    imagenes: c.imagenes.filter(Boolean),
+    talles: c.talles
+  }));
+
+  const lista = getProductos();
+
+  const prodData = { tipo, nombre, categoria, precio, descripcion, badge, activo };
+  if (esPaquete) {
+    delete prodData.colores;
+  } else {
+    prodData.colores = coloresClean;
+  }
+  if (guiaTalle) prodData.guiaTalle = guiaTalle;
+  else delete prodData.guiaTalle;
+  if (efemeride) prodData.efemeride = efemeride;
+  else delete prodData.efemeride;
+  if (imagen) prodData.imagen = imagen;
+  else delete prodData.imagen;
+
+  if (id) {
+    const idx = lista.findIndex(p => p.id === parseInt(id));
+    if (idx > -1) {
+      lista[idx] = { ...lista[idx], ...prodData };
+    }
+    toast('✅ Producto actualizado');
+  } else {
+    const newId = Math.max(0, ...lista.map(p => p.id)) + 1;
+    lista.push({ id: newId, ...prodData });
+    toast('✅ Producto agregado');
+  }
+  saveProductos(lista);
+  resetForm();
+  renderAdminLista();
+}
+
+function editarProducto(id) {
+  const p = getProductos().find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('editId').value = p.id;
+  document.getElementById('fTipo').value = p.tipo || 'individual';
+  document.getElementById('fNombre').value = p.nombre;
+  document.getElementById('fCategoria').value = p.categoria;
+  document.getElementById('fPrecio').value = p.precio || '';
+  document.getElementById('fDesc').value = p.descripcion;
+  document.getElementById('fBadge').value = p.badge || '';
+  document.getElementById('fGuiaTalle').value = p.guiaTalle || '';
+  document.getElementById('fEfemeride').value = p.efemeride || '';
+  document.getElementById('fImagen').value = p.imagen || '';
+  document.getElementById('fActivo').checked = p.activo !== false;
+  document.getElementById('formTitle').textContent = '✏️ Editando producto';
+  togglePackTierField();
+  document.getElementById('fPackTier').value = (p.tipo === 'paquete' && p.categoria === 'packs') ? (p.badge || '') : '';
+
+  // Cargar colores
+  const tallesList = getTallesFromSelector();
+  adminColorsData = (p.colores && p.colores.length) ? p.colores.map(c => ({
+    nombre: c.nombre || '',
+    hex: c.hex || '#6b21a8',
+    imagenes: padArray(c.imagenes || [], 3, null),
+    talles: c.talles || Object.fromEntries(tallesList.map(t => [t, { stock: 0, activo: true }]))
+  })) : [];
+  renderColoresForm();
+
+  document.querySelectorAll('.admin-card').forEach(c => c.classList.remove('editando'));
+  document.getElementById('card-'+id)?.classList.add('editando');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function padArray(arr, len, val) {
+  const result = [...arr];
+  while (result.length < len) result.push(val);
+  return result;
+}
+
+function toggleActivo(id) {
+  const lista = getProductos();
+  const p = lista.find(x => x.id === id);
+  if (!p) return;
+  p.activo = !p.activo;
+  saveProductos(lista);
+  renderAdminLista();
+  toast(p.activo ? '✅ Producto activado' : '⏸ Producto pausado');
+}
+
+function eliminarProducto(id) {
+  if (!confirm('¿Seguro que querés eliminar este producto? Esta acción no se puede deshacer.')) return;
+  saveProductos(getProductos().filter(p => p.id !== id));
+  renderAdminLista();
+  toast('🗑️ Producto eliminado');
+}
+
+function resetForm() {
+  ['editId','fNombre','fPrecio','fDesc','fImagen'].forEach(i => document.getElementById(i).value = '');
+  document.getElementById('fTipo').value = 'individual';
+  document.getElementById('fCategoria').selectedIndex = 0;
+  document.getElementById('fBadge').value = '';
+  document.getElementById('fGuiaTalle').value = '';
+  document.getElementById('fEfemeride').value = '';
+  document.getElementById('fActivo').checked = true;
+  document.getElementById('fPackTier').value = '';
+  togglePackTierField();
+  document.getElementById('formTitle').textContent = '➕ Agregar producto';
+  adminColorsData = [];
+  renderColoresForm();
+  document.querySelectorAll('.admin-card').forEach(c => c.classList.remove('editando'));
+}
+
+// =============================================
+// RENDER ADMIN LISTA
+// =============================================
+function renderAdminLista() {
+  const q = document.getElementById('adminSearch').value.toLowerCase();
+  const todos = getProductos();
+  document.getElementById('counter').textContent = `(${todos.length} total)`;
+
+  const lista = todos.filter(p => {
+    if (listTab === 'individual' && p.tipo !== 'individual') return false;
+    if (listTab === 'paquete'    && p.tipo !== 'paquete')    return false;
+    if (listTab === 'pausado'    && p.activo)                return false;
+    return !q || p.nombre.toLowerCase().includes(q) || p.descripcion.toLowerCase().includes(q);
+  });
+
+  if (!lista.length) {
+    document.getElementById('adminLista').innerHTML =
+      '<p style="color:var(--gris);text-align:center;padding:40px">Sin resultados</p>';
+    return;
+  }
+
+  const catMap = Object.fromEntries(CATEGORIAS.map(c => [c.id, `${c.icono} ${c.nombre}`]));
+  const fallback = 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=70&h=50&fit=crop';
+
+  document.getElementById('adminLista').innerHTML = lista.map(p => {
+    const precio = p.precio ? `$ ${p.precio.toLocaleString('es-AR')}` : 'Consultar';
+    const pausadoClass = !p.activo ? 'pausado' : '';
+    const esPaquete = p.tipo === 'paquete';
+    const tipoLabel = esPaquete ? '📋' : '👕';
+    const imgSrc = !esPaquete ? (getPrimeraImagen(p) || fallback) : fallback;
+    const colores = p.colores || [];
+
+    let stockInfo = '';
+    if (esPaquete) {
+      stockInfo = '📋 Paquete mayorista';
+    } else {
+      let totalStock = 0;
+      let coloresConStock = 0;
+      colores.forEach(c => {
+        if (c.talles) {
+          Object.values(c.talles).forEach(td => {
+            if (td && td.activo) totalStock += (td.stock || 0);
+          });
+          const hasStock = Object.values(c.talles).some(td => td && td.activo && td.stock > 0);
+          if (hasStock) coloresConStock++;
+        }
+      });
+      stockInfo = totalStock > 0 ? `${totalStock} uds · ${coloresConStock}/${colores.length} colores` : 'Sin stock';
+    }
+
+    return `
+      <div class="admin-card ${pausadoClass}" id="card-${p.id}">
+        <img src="${imgSrc}" onerror="this.src='${fallback}'" alt="">
+        <div class="admin-card-info">
+          <div class="admin-card-nombre">${tipoLabel} ${p.nombre}${!p.activo?'<span class="pausado-tag">⏸ PAUSADO</span>':''}</div>
+          <div class="admin-card-meta">${catMap[p.categoria] || p.categoria} ${p.badge ? '· '+p.badge : ''} ${p.efemeride ? '🎉' : ''}</div>
+          <div class="admin-card-precio">${precio}</div>
+          ${colores.length ? `<div class="admin-card-colores">
+            ${colores.slice(0, 8).map(c => `<span class="admin-card-color-dot" style="background:${c.hex}" title="${c.nombre}"></span>`).join('')}
+          </div>` : ''}
+          <div class="admin-card-stock-info">${stockInfo}</div>
+        </div>
+        <div class="admin-card-actions">
+          <button class="btn-edit" onclick="editarProducto(${p.id})">✏️ Editar</button>
+          <button class="btn-toggle ${p.activo?'activo':'inactivo'}" onclick="toggleActivo(${p.id})">
+            ${p.activo ? '⏸ Pausar' : '▶️ Activar'}
+          </button>
+          <button class="btn-del" onclick="eliminarProducto(${p.id})">🗑️ Borrar</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// =============================================
+// EXPORT / IMPORT
+// =============================================
+function exportarJSON() {
+  const blob = new Blob([JSON.stringify(getProductos(), null, 2)], { type:'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'productos_dubenji_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  toast('⬇️ JSON exportado');
+}
+
+function importarJSON() {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = '.json';
+  input.onchange = e => {
+    const r = new FileReader();
+    r.onload = ev => {
+      try {
+        const lista = JSON.parse(ev.target.result);
+        if (!Array.isArray(lista)) throw 0;
+        saveProductos(lista); renderAdminLista(); toast('⬆️ Importado OK');
+      } catch { toast('❌ Archivo inválido', 'error'); }
+    };
+    r.readAsText(e.target.files[0]);
+  };
+  input.click();
+}
+
+function resetearDatos() {
+  if (!confirm('¿Restablecer todos los productos a los valores originales del código?')) return;
+  localStorage.removeItem('gag_productos');
+  renderAdminLista();
+  toast('🔄 Datos restablecidos');
+}
+
+// =============================================
+// CUPONES — ADMIN
+// =============================================
+function abrirModalCupones() {
+  renderCuponesAdmin();
+  document.getElementById('cuponesModal').classList.add('open');
+  document.getElementById('fcCodigo').value = '';
+  document.getElementById('fcPorcentaje').value = '';
+}
+
+function cerrarModalCupones() {
+  document.getElementById('cuponesModal').classList.remove('open');
+}
+
+function renderCuponesAdmin() {
+  const lista = getCupones();
+  const el = document.getElementById('cuponList');
+  if (!lista.length) {
+    el.innerHTML = '<p style="color:var(--gris);text-align:center;padding:20px">Sin cupones creados</p>';
+    return;
+  }
+  el.innerHTML = lista.map(c => `
+    <div class="cupon-card ${!c.activo?'pausado':''}">
+      <div>
+        <div class="cupon-codigo">${c.codigo}</div>
+        <div class="cupon-usos">Usado ${c.usos} ${c.usos === 1 ? 'vez' : 'veces'}</div>
+      </div>
+      <span class="cupon-pct">${c.porcentaje}% OFF</span>
+      <span style="font-size:.72rem;color:${c.activo?'var(--verde)':'var(--naranja)'}">${c.activo ? '✅ Activo' : '⏸ Pausado'}</span>
+      <div class="cupon-card-actions">
+        <button class="${c.activo?'btn-cupon-toggle activo':'btn-cupon-toggle'}" onclick="toggleCuponAdmin(${c.id})">${c.activo ? '⏸' : '▶️'}</button>
+        <button class="btn-cupon-del" onclick="eliminarCuponAdmin(${c.id})">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function guardarCupon() {
+  const codigo = document.getElementById('fcCodigo').value.trim().toUpperCase();
+  const pct = parseInt(document.getElementById('fcPorcentaje').value);
+  if (!codigo || codigo.length < 2) { toast('Ingresá un código válido', 'error'); return; }
+  if (!pct || pct < 1 || pct > 100) { toast('Ingresá un porcentaje entre 1 y 100', 'error'); return; }
+  const lista = getCupones();
+  if (lista.find(c => c.codigo === codigo)) { toast('❌ Ese código ya existe', 'error'); return; }
+  const newId = Math.max(0, ...lista.map(c => c.id)) + 1;
+  lista.push({ id: newId, codigo, porcentaje: pct, activo: true, usos: 0 });
+  saveCupones(lista);
+  document.getElementById('fcCodigo').value = '';
+  document.getElementById('fcPorcentaje').value = '';
+  renderCuponesAdmin();
+  toast('✅ Cupón creado');
+}
+
+function toggleCuponAdmin(id) {
+  const lista = getCupones();
+  const c = lista.find(x => x.id === id);
+  if (!c) return;
+  c.activo = !c.activo;
+  saveCupones(lista);
+  renderCuponesAdmin();
+  toast(c.activo ? '✅ Cupón activado' : '⏸ Cupón pausado');
+}
+
+function eliminarCuponAdmin(id) {
+  if (!confirm('¿Eliminar este cupón?')) return;
+  saveCupones(getCupones().filter(c => c.id !== id));
+  renderCuponesAdmin();
+  toast('🗑️ Cupón eliminado');
+}
+
+// =============================================
+// CREDENCIALES
+// =============================================
+
+function getAdminPass() {
+  return localStorage.getItem('dubenji_admin_pass') || ADMIN_PASSWORD;
+}
+
+function abrirModalCredenciales() {
+  document.getElementById('credencialesModal').classList.add('open');
+  document.getElementById('fPassActual').value = '';
+  document.getElementById('fPassNueva').value = '';
+  document.getElementById('fPassConfirm').value = '';
+  document.getElementById('credencialesError').textContent = '';
+}
+
+function cerrarModalCredenciales() {
+  document.getElementById('credencialesModal').classList.remove('open');
+}
+
+function guardarCredenciales() {
+  const actual = document.getElementById('fPassActual').value;
+  const nueva = document.getElementById('fPassNueva').value;
+  const confirm = document.getElementById('fPassConfirm').value;
+  const err = document.getElementById('credencialesError');
+
+  if (!actual || !nueva || !confirm) {
+    err.textContent = '❌ Completá todos los campos'; return;
+  }
+  if (actual !== getAdminPass()) {
+    err.textContent = '❌ La contraseña actual no es correcta'; return;
+  }
+  if (nueva.length < 6) {
+    err.textContent = '❌ La nueva contraseña debe tener al menos 6 caracteres'; return;
+  }
+  if (nueva !== confirm) {
+    err.textContent = '❌ Las contraseñas nuevas no coinciden'; return;
+  }
+
+  saveAdminPass(nueva);
+  err.textContent = '';
+  toast('✅ Contraseña actualizada correctamente');
+  document.getElementById('credencialesModal').classList.remove('open');
+}
+
+function lwLogin() {
+  const pw = document.getElementById('lwPassword').value;
+  if (pw === getAdminPass()) {
+    sessionStorage.setItem('gag_admin','1');
+    document.getElementById('loginWall').classList.add('hidden');
+    document.getElementById('appContent').classList.add('visible');
+    history.replaceState(null, '', 'admin.html');
+    window.__READY.then(initAdmin);
+  } else {
+    document.getElementById('lwError').textContent = '❌ Contraseña incorrecta';
+    document.getElementById('lwPassword').value = '';
+    document.getElementById('lwPassword').focus();
+  }
+}
+
+// =============================================
+// EFEMÉRIDES — EDITOR
+// =============================================
+
+function abrirModalEfemerides() {
+  renderEfemeridesAdmin();
+  document.getElementById('efemeridesModal').classList.add('open');
+  document.getElementById('efeNombre').value = '';
+}
+
+function cerrarModalEfemerides() {
+  document.getElementById('efemeridesModal').classList.remove('open');
+}
+
+function renderEfemeridesAdmin() {
+  const lista = getEfemerides();
+  const container = document.getElementById('efemeridesList');
+  if (!container) return;
+  if (!lista.length) {
+    container.innerHTML = '<p style="color:var(--gris);font-size:.85rem;text-align:center;padding:20px;">No hay efemérides creadas aún.</p>';
+    return;
+  }
+  container.innerHTML = lista.map(e => `
+    <div class="cupon-item" style="display:flex;align-items:center;gap:10px;">
+      <span style="flex:1;font-weight:600;">🎉 ${e.nombre}</span>
+      <button class="btn-cupon-toggle ${e.activo?'activo':''}" onclick="toggleEfemeride('${e.id}')" style="font-size:.7rem;padding:4px 10px;">${e.activo ? '✅ Visible' : '⏸ Oculta'}</button>
+      <button class="btn-cupon-del" onclick="renameEfemeride('${e.id}')" style="font-size:.7rem;padding:4px 10px;">✏️</button>
+      <button class="btn-cupon-del" onclick="eliminarEfemeride('${e.id}')" style="font-size:.7rem;padding:4px 10px;">🗑️</button>
+    </div>
+  `).join('');
+}
+
+function guardarEfemeride() {
+  const nombre = document.getElementById('efeNombre').value.trim();
+  if (!nombre) { toast('Ingresá un nombre para la efeméride', 'error'); return; }
+  const lista = getEfemerides();
+  const id = 'efem_' + Date.now();
+  lista.push({ id, nombre, activo: true });
+  saveEfemerides(lista);
+  document.getElementById('efeNombre').value = '';
+  renderEfemeridesAdmin();
+  initCategorias();
+  toast('✅ Efeméride creada: ' + nombre);
+}
+
+function toggleEfemeride(id) {
+  const lista = getEfemerides();
+  const e = lista.find(x => x.id === id);
+  if (!e) return;
+  e.activo = !e.activo;
+  saveEfemerides(lista);
+  renderEfemeridesAdmin();
+  initCategorias();
+  toast(e.activo ? '✅ Efeméride visible' : '⏸ Efeméride oculta');
+}
+
+function renameEfemeride(id) {
+  const lista = getEfemerides();
+  const e = lista.find(x => x.id === id);
+  if (!e) return;
+  const nuevo = prompt('Nuevo nombre para la efeméride:', e.nombre);
+  if (nuevo && nuevo.trim()) {
+    e.nombre = nuevo.trim();
+    saveEfemerides(lista);
+    renderEfemeridesAdmin();
+    initCategorias();
+    toast('✅ Nombre actualizado');
+  }
+}
+
+function eliminarEfemeride(id) {
+  if (!confirm('¿Eliminar esta efeméride? Los productos asociados no se eliminarán.')) return;
+  let lista = getEfemerides();
+  lista = lista.filter(e => e.id !== id);
+  saveEfemerides(lista);
+  renderEfemeridesAdmin();
+  initCategorias();
+  toast('🗑️ Efeméride eliminada');
+}
+
+// =============================================
+// GUÍA DE TALLES — EDITOR
+// =============================================
+
+function abrirModalGuias() {
+  renderGuiasEditor();
+  document.getElementById('guiasModal').classList.add('open');
+}
+
+function cerrarModalGuias() {
+  document.getElementById('guiasModal').classList.remove('open');
+}
+
+function renderGuiasEditor() {
+  const guias = getGuiasTalles();
+  const keys = Object.keys(guias);
+  const container = document.getElementById('guiasEditor');
+  if (!container) return;
+
+  container.innerHTML = keys.map(key => {
+    const g = guias[key];
+    return `
+      <div class="color-card" style="margin-bottom:16px">
+        <div class="color-card-header">
+          <strong style="color:var(--morado);font-family:var(--font-display);font-size:1rem;">${g.nombre}</strong>
+          <span style="font-size:.72rem;color:var(--gris);margin-left:auto;">ID: ${key}</span>
+        </div>
+        <div class="form-group">
+          <label>Nombre de la guía</label>
+          <input type="text" value="${g.nombre}" id="guiaNombre_${key}" onchange="actualizarGuiaCampo('${key}','nombre',this.value)">
+        </div>
+        <div class="form-group">
+          <label>Imagen ilustrativa</label>
+          <input type="text" value="${g.imagen}" id="guiaImagen_${key}" onchange="actualizarGuiaCampo('${key}','imagen',this.value)" placeholder="ej: 23.png">
+        </div>
+        <div style="font-size:.78rem;font-weight:600;color:var(--gris);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;">Medidas</div>
+        <div style="overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;font-size:.85rem;">
+            <thead>
+              <tr>
+                <th style="text-align:left;padding:6px 10px;background:var(--dark-2);color:var(--gris);border-bottom:1px solid rgba(168,85,247,.2);">Talle</th>
+                <th style="text-align:left;padding:6px 10px;background:var(--dark-2);color:var(--gris);border-bottom:1px solid rgba(168,85,247,.2);">Ancho (cm)</th>
+                <th style="text-align:left;padding:6px 10px;background:var(--dark-2);color:var(--gris);border-bottom:1px solid rgba(168,85,247,.2);">Largo (cm)</th>
+                <th style="text-align:left;padding:6px 10px;background:var(--dark-2);color:var(--gris);border-bottom:1px solid rgba(168,85,247,.2);width:40px;"></th>
+              </tr>
+            </thead>
+            <tbody id="guiaBody_${key}">
+              ${g.tabla.map((fila, fi) => `
+                <tr>
+                  <td><input type="text" value="${fila.talle}" style="width:50px;background:var(--dark-2);border:1px solid rgba(168,85,247,.15);color:var(--blanco);padding:5px 8px;border-radius:4px;font-size:.82rem;" onchange="actualizarGuiaCelda('${key}',${fi},'talle',this.value)"></td>
+                  <td><input type="number" value="${fila.ancho}" style="width:70px;background:var(--dark-2);border:1px solid rgba(168,85,247,.15);color:var(--blanco);padding:5px 8px;border-radius:4px;font-size:.82rem;" onchange="actualizarGuiaCelda('${key}',${fi},'ancho',this.value)"></td>
+                  <td><input type="number" value="${fila.largo}" style="width:70px;background:var(--dark-2);border:1px solid rgba(168,85,247,.15);color:var(--blanco);padding:5px 8px;border-radius:4px;font-size:.82rem;" onchange="actualizarGuiaCelda('${key}',${fi},'largo',this.value)"></td>
+                  <td><button class="btn-del" style="padding:3px 8px;font-size:.7rem;" onclick="eliminarFilaGuia('${key}',${fi})">✕</button></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">
+          <button class="btn-add-color" style="flex:1;font-size:.78rem;padding:6px;" onclick="agregarFilaGuia('${key}')">➕ Agregar talle</button>
+          <button class="btn-nuevo" style="flex:1;font-size:.78rem;padding:6px;" onclick="restablecerGuia('${key}')">🔄 Valores originales</button>
+          <button class="btn-del" style="flex:0;padding:6px 12px;font-size:.78rem;" onclick="eliminarCategoriaGuia('${key}')">🗑️ Eliminar</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML += `
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <button class="btn-export" onclick="agregarCategoriaGuia()" style="flex:1">➕ Agregar categoría</button>
+    </div>
+    <p style="color:var(--gris);font-size:.78rem;text-align:center;margin-top:8px;">
+      📌 Las guías se guardan automáticamente al modificar los valores.
+    </p>`;
+}
+
+let guiaSaveTimer = null;
+function guardarGuiasDiferidas() {
+  clearTimeout(guiaSaveTimer);
+  guiaSaveTimer = setTimeout(() => {
+    toast('✅ Guías guardadas');
+  }, 500);
+}
+
+function actualizarGuiaCampo(key, campo, valor) {
+  const guias = getGuiasTalles();
+  if (!guias[key]) return;
+  guias[key][campo] = valor;
+  saveGuiasTalles(guias);
+  guardarGuiasDiferidas();
+}
+
+function actualizarGuiaCelda(key, filaIdx, campo, valor) {
+  const guias = getGuiasTalles();
+  if (!guias[key] || !guias[key].tabla[filaIdx]) return;
+  if (campo === 'ancho' || campo === 'largo') valor = parseInt(valor) || 0;
+  guias[key].tabla[filaIdx][campo] = valor;
+  saveGuiasTalles(guias);
+  guardarGuiasDiferidas();
+}
+
+function eliminarFilaGuia(key, filaIdx) {
+  const guias = getGuiasTalles();
+  if (!guias[key] || guias[key].tabla.length <= 1) {
+    toast('Debe haber al menos un talle', 'error');
+    return;
+  }
+  guias[key].tabla.splice(filaIdx, 1);
+  saveGuiasTalles(guias);
+  renderGuiasEditor();
+  toast('🗑️ Fila eliminada');
+}
+
+function agregarFilaGuia(key) {
+  const guias = getGuiasTalles();
+  if (!guias[key]) return;
+  const ultimo = guias[key].tabla[guias[key].tabla.length - 1];
+  guias[key].tabla.push({ talle: '', ancho: 0, largo: 0 });
+  saveGuiasTalles(guias);
+  renderGuiasEditor();
+  toast('➕ Fila agregada');
+}
+
+function restablecerGuia(key) {
+  if (!confirm(`¿Restablecer la guía "${key}" a sus valores originales?`)) return;
+  const defaults = JSON.parse(JSON.stringify(GUIAS_TALLES_DEFAULT));
+  if (!defaults[key]) { toast('No hay valores originales para esta guía', 'error'); return; }
+  const guias = getGuiasTalles();
+  guias[key] = defaults[key];
+  saveGuiasTalles(guias);
+  renderGuiasEditor();
+  toast('🔄 Guía restablecida');
+}
+
+function agregarCategoriaGuia() {
+  const nombre = prompt('Nombre de la nueva categoría (ej: Chomba):');
+  if (!nombre || !nombre.trim()) return;
+  const id = nombre.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+  if (!id) { toast('❌ Nombre inválido', 'error'); return; }
+
+  const guias = getGuiasTalles();
+  if (guias[id]) { toast('❌ Esa categoría ya existe', 'error'); return; }
+
+  guias[id] = {
+    nombre: nombre.trim(),
+    imagen: '23.png',
+    tabla: [
+      { talle: 'S', ancho: 48, largo: 68 },
+      { talle: 'M', ancho: 52, largo: 72 },
+      { talle: 'L', ancho: 56, largo: 76 },
+      { talle: 'XL', ancho: 60, largo: 80 }
+    ]
+  };
+  saveGuiasTalles(guias);
+  renderGuiasEditor();
+  renderGuiaTalleOptions();
+  toast(`✅ Categoría "${nombre.trim()}" creada`);
+}
+
+function eliminarCategoriaGuia(key) {
+  const guias = getGuiasTalles();
+  if (!guias[key]) return;
+  if (!confirm(`¿Eliminar la categoría "${guias[key].nombre}"? Los productos que usen esta guía perderán la referencia.`)) return;
+  delete guias[key];
+  saveGuiasTalles(guias);
+  renderGuiasEditor();
+  renderGuiaTalleOptions();
+  toast(`🗑️ Categoría "${key}" eliminada`);
+}
+
+// =============================================
+// CLASIFICACIÓN DE PAQUETES (tiers)
+// =============================================
+
+function abrirModalPackTiers() {
+  renderPackTiersEditor();
+  document.getElementById('packTiersModal').classList.add('open');
+}
+
+function cerrarModalPackTiers() {
+  document.getElementById('packTiersModal').classList.remove('open');
+}
+
+function renderPackTiersEditor() {
+  const container = document.getElementById('packTiersEditor');
+  if (!container) return;
+  const tiers = getPackTiers();
+  container.innerHTML = Object.keys(tiers).map(key => `
+    <div class="color-card" style="margin-bottom:10px;">
+      <div class="color-card-header">
+        <div class="color-picker-wrap">
+          <input type="color" value="${tiers[key].color}" onchange="actualizarPackTier('${key}','color',this.value)">
+          <input type="text" value="${tiers[key].nombre}" placeholder="Nombre" style="text-transform:uppercase" onchange="renderPackTiersEditor();actualizarPackTier('${key}','nombre',this.value)">
+        </div>
+        <button class="btn-remove-color" onclick="eliminarPackTier('${key}')">✕</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 0 0;">
+        <span class="producto-badge" style="background:${tiers[key].color}">${tiers[key].nombre}</span>
+        <span style="color:var(--gris);font-size:.78rem;">Clave: <code style="color:var(--azul)">${key}</code></span>
+      </div>
+    </div>
+  `).join('') + `
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button class="btn-export" onclick="agregarPackTier()" style="flex:1">➕ Agregar clasificación</button>
+      <button class="btn-nuevo" onclick="restablecerPackTiers()" style="flex:0">🔄 Valores originales</button>
+    </div>
+    <p style="color:var(--gris);font-size:.78rem;text-align:center;margin-top:8px;">
+      📌 Los cambios se guardan automáticamente.
+    </p>`;
+  renderPackTierOptions();
+}
+
+function actualizarPackTier(key, campo, valor) {
+  const tiers = getPackTiers();
+  if (!tiers[key]) return;
+  if (campo === 'nombre') valor = valor.toUpperCase().trim() || tiers[key].nombre;
+  tiers[key][campo] = valor;
+  savePackTiers(tiers);
+  toast(`✅ Clasificación actualizada`);
+}
+
+function eliminarPackTier(key) {
+  const tiers = getPackTiers();
+  if (!tiers[key]) return;
+  if (Object.keys(tiers).length <= 1) { toast('Debe haber al menos una clasificación', 'error'); return; }
+  if (!confirm(`¿Eliminar la clasificación "${tiers[key].nombre}"?`)) return;
+  delete tiers[key];
+  savePackTiers(tiers);
+  renderPackTiersEditor();
+  toast(`🗑️ Clasificación eliminada`);
+}
+
+function agregarPackTier() {
+  const nombre = prompt('Nombre de la nueva clasificación (ej: ORO):');
+  if (!nombre || !nombre.trim()) return;
+  const id = nombre.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+  if (!id) { toast('❌ Nombre inválido', 'error'); return; }
+  const tiers = getPackTiers();
+  if (tiers[id]) { toast('❌ Esa clasificación ya existe', 'error'); return; }
+  tiers[id] = { nombre: nombre.trim().toUpperCase(), color: '#6b7280' };
+  savePackTiers(tiers);
+  renderPackTiersEditor();
+  toast(`✅ Clasificación "${nombre.trim().toUpperCase()}" creada`);
+}
+
+function restablecerPackTiers() {
+  if (!confirm('¿Restablecer las clasificaciones a sus valores originales (Base, Estándar, Premium)?')) return;
+  savePackTiers(JSON.parse(JSON.stringify(PACK_TIERS_DEFAULT)));
+  renderPackTiersEditor();
+  toast('🔄 Clasificaciones restablecidas');
+}
+
+function renderPackTierOptions() {
+  const sel = document.getElementById('fPackTier');
+  if (!sel) return;
+  const val = sel.value;
+  const tiers = getPackTiers();
+  sel.innerHTML = '<option value="">Sin clasificación</option>' +
+    Object.keys(tiers).map(k => tiers[k].nombre).filter((v,i,a)=>a.indexOf(v)===i).map(n =>
+      `<option value="${n}"${n===val?' selected':''}>${n}</option>`
+    ).join('');
+}
+
+// =============================================
+// PRESUPUESTO
+// =============================================
+
+let presupuestoItems = [];
+let presInit = false;
+
+function abrirModalPresupuesto() {
+  if (!presInit) { presInit = true; presNuevo(); }
+  document.getElementById('presupuestoModal').classList.add('open');
+  presRenderItems();
+}
+
+function cerrarModalPresupuesto() {
+  document.getElementById('presupuestoModal').classList.remove('open');
+}
+
+function presNuevo() {
+  document.getElementById('presCliente').value = '';
+  document.getElementById('presContacto').value = '';
+  document.getElementById('presNota').value = '';
+  presupuestoItems = [];
+  presRenderItems();
+  document.getElementById('presupuestoFecha').textContent = new Date().toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function presAgregarItem(desc, cant, precio) {
+  const idx = presupuestoItems.length;
+  presupuestoItems.push({
+    id: Date.now() + idx,
+    descripcion: desc || '',
+    cantidad: cant || 1,
+    precio: precio || 0
+  });
+  presRenderItems();
+}
+
+function presEliminarItem(id) {
+  presupuestoItems = presupuestoItems.filter(i => i.id !== id);
+  presRenderItems();
+}
+
+function presActualizarItem(id, campo, valor) {
+  const item = presupuestoItems.find(i => i.id === id);
+  if (!item) return;
+  if (campo === 'cantidad') valor = Math.max(1, parseInt(valor) || 1);
+  if (campo === 'precio') valor = Math.max(0, parseInt(valor) || 0);
+  item[campo] = valor;
+  presRenderItems();
+}
+
+function presRenderItems() {
+  const container = document.getElementById('presupuestoItems');
+  if (!container) return;
+
+  if (!presupuestoItems.length) {
+    container.innerHTML = '<p style="color:var(--gris);text-align:center;padding:24px;font-size:.85rem;">Agregá productos al presupuesto</p>';
+    document.getElementById('presupuestoTotal').innerHTML = '<span>Total:</span><span>$ 0</span>';
+    return;
+  }
+
+  container.innerHTML = presupuestoItems.map((item, idx) => {
+    const subtotal = (item.precio || 0) * (item.cantidad || 1);
+    return `
+      <div class="pres-item">
+        <div class="pres-item-num">${idx + 1}</div>
+        <div class="pres-item-desc">
+          <input type="text" value="${item.descripcion}" placeholder="Descripción del producto"
+            onchange="presActualizarItem(${item.id},'descripcion',this.value)"
+            style="width:100%;background:var(--dark-2);border:1px solid rgba(14,165,233,.2);color:var(--blanco);padding:7px 10px;border-radius:6px;font-size:.82rem;">
+        </div>
+        <div class="pres-item-cant">
+          <input type="number" value="${item.cantidad}" min="1"
+            onchange="presActualizarItem(${item.id},'cantidad',this.value)"
+            style="width:55px;text-align:center;background:var(--dark-2);border:1px solid rgba(14,165,233,.2);color:var(--blanco);padding:7px;border-radius:6px;font-size:.82rem;">
+        </div>
+        <div class="pres-item-precio">
+          <input type="number" value="${item.precio}" min="0" step="100"
+            onchange="presActualizarItem(${item.id},'precio',this.value)"
+            style="width:90px;text-align:right;background:var(--dark-2);border:1px solid rgba(14,165,233,.2);color:var(--blanco);padding:7px;border-radius:6px;font-size:.82rem;">
+        </div>
+        <div class="pres-item-subtotal">$ ${subtotal.toLocaleString('es-AR')}</div>
+        <button class="pres-item-del" onclick="presEliminarItem(${item.id})">✕</button>
+      </div>
+    `;
+  }).join('');
+
+  const total = presupuestoItems.reduce((sum, item) => sum + ((item.precio || 0) * (item.cantidad || 1)), 0);
+  document.getElementById('presupuestoTotal').innerHTML = `
+    <span>Total:</span>
+    <span>$ ${total.toLocaleString('es-AR')}</span>`;
+}
+
+function presObtenerDatos() {
+  const cliente = document.getElementById('presCliente').value.trim() || 'Cliente';
+  const contacto = document.getElementById('presContacto').value.trim() || '';
+  const nota = document.getElementById('presNota').value.trim();
+  const fecha = document.getElementById('presupuestoFecha').textContent;
+  const total = presupuestoItems.reduce((sum, item) => sum + ((item.precio || 0) * (item.cantidad || 1)), 0);
+  return { cliente, contacto, nota, fecha, items: [...presupuestoItems], total };
+}
+
+function presDescargarPDF() {
+  if (!presupuestoItems.length) { toast('Agregá al menos un producto', 'error'); return; }
+  const data = presObtenerDatos();
+
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Presupuesto - ${data.cliente}</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: 'Segoe UI', Arial, sans-serif; padding: 40px; color: #1a1a2e; font-size: 14px; }
+      .pres-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; border-bottom: 3px solid #a855f7; padding-bottom: 20px; }
+      .pres-logo { display: flex; align-items: center; gap: 8px; }
+      .pres-logo img { height: 50px; width: auto; }
+      .pres-fecha { color: #64748b; font-size: 13px; }
+      .pres-cliente { margin-bottom: 24px; }
+      .pres-cliente h2 { font-size: 20px; margin-bottom: 4px; }
+      .pres-cliente p { color: #64748b; }
+      .pres-titulo { font-size: 24px; font-weight: 700; color: #a855f7; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; }
+      table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+      th { background: #1e1b4b; color: white; padding: 10px 12px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+      th:nth-child(2), th:nth-child(3), th:nth-child(4) { text-align: center; }
+      td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; }
+      td:nth-child(2), td:nth-child(3), td:nth-child(4) { text-align: center; }
+      td:nth-child(4) { font-weight: 600; }
+      .pres-total { text-align: right; font-size: 22px; font-weight: 700; padding: 16px 0; border-top: 2px solid #a855f7; margin-top: 8px; }
+      .pres-nota { margin-top: 32px; padding-top: 16px; border-top: 1px solid #e2e8f0; font-size: 12px; color: #64748b; }
+      .pres-footer { margin-top: 48px; text-align: center; color: #94a3b8; font-size: 11px; border-top: 1px solid #e2e8f0; padding-top: 16px; }
+      @media print { body { padding: 20px; } }
+    </style></head><body>
+    <div class="pres-header">
+      <div class="pres-logo">
+        <img src="icono-talles/icono 400x400.webp" onerror="this.style.display='none'" style="height:50px">
+        <img src="icono-talles/icono 600x400.webp" onerror="this.style.display='none'" style="height:36px">
+      </div>
+      <div class="pres-fecha">${data.fecha}</div>
+    </div>
+    <div class="pres-titulo">Presupuesto</div>
+    <div class="pres-cliente">
+      <h2>${data.cliente}</h2>
+      ${data.contacto ? `<p>${data.contacto}</p>` : ''}
+    </div>
+    <table>
+      <thead><tr><th style="width:40px;">#</th><th>Producto</th><th style="width:70px;">Cant.</th><th style="width:110px;">Precio</th><th style="width:110px;">Subtotal</th></tr></thead>
+      <tbody>
+        ${data.items.map((item, i) => `
+          <tr>
+            <td>${i+1}</td>
+            <td>${item.descripcion || '—'}</td>
+            <td>${item.cantidad}</td>
+            <td>$${(item.precio||0).toLocaleString('es-AR')}</td>
+            <td>$${((item.precio||0)*(item.cantidad||1)).toLocaleString('es-AR')}</td>
+          </tr>`).join('')}
+      </tbody>
+    </table>
+    <div class="pres-total">Total: $${data.total.toLocaleString('es-AR')}</div>
+    ${data.nota ? `<div class="pres-nota"><strong>Nota:</strong> ${data.nota}</div>` : ''}
+    <div class="pres-footer">Dubenji Indumentaria — Bella Vista, Corrientes — ${data.fecha}</div>
+    <script>window.print();window.onafterprint=()=>window.close();<\/script>
+  </body></html>`);
+  win.document.close();
+}
+
+function presCompartirEnlace() {
+  if (!presupuestoItems.length) { toast('Agregá al menos un producto', 'error'); return; }
+  const data = presObtenerDatos();
+  const id = 'PRES_' + Date.now().toString(36).toUpperCase();
+  savePresupuesto(id, data);
+
+  const url = window.location.origin + window.location.pathname.replace('admin.html','presupuesto.html') + '?id=' + id;
+  navigator.clipboard.writeText(url).then(() => {
+    toast('✅ Enlace copiado al portapapeles');
+  }).catch(() => {
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = url;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    toast('✅ Enlace copiado');
+  });
+}
+</script>
+</body>
+</html>
