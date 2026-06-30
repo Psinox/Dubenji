@@ -12,63 +12,69 @@ const FIREBASE_CONFIG = {
   measurementId: "G-JXX72KMQ0F"
 };
 
-// Inicializar Firebase (compat SDK)
 firebase.initializeApp(FIREBASE_CONFIG);
 const FIRESTORE = firebase.firestore();
 const DB_REF = FIRESTORE.collection('appData').doc('main');
 
 // =============================================
-// DATA STORE
+// DATA STORE — memoria local + Firestore
 // =============================================
 
 window.__DATA = {};
 let __ready = false;
 let __initResolve = null;
 window.__READY = new Promise(r => __initResolve = r);
+let __pendingWrites = {};
+let __syncTimer = null;
 
-// Cargar datos iniciales + escuchar cambios en tiempo real
+function __sync() {
+  clearTimeout(__syncTimer);
+  __syncTimer = setTimeout(() => {
+    window.__onFbSync?.();
+  }, 300);
+}
+
+// Verificación única inicial — solo crea datos si el doc NO existe
+DB_REF.get().then(doc => {
+  if (!doc.exists) {
+    const obj = {
+      productos: JSON.parse(JSON.stringify(PRODUCTOS_DEFAULT)),
+      guiasTalles: JSON.parse(JSON.stringify(GUIAS_TALLES_DEFAULT)),
+      packTiers: JSON.parse(JSON.stringify(PACK_TIERS_DEFAULT)),
+      efemerides: [],
+      cupones: JSON.parse(JSON.stringify(CUPONES_DEFAULT)),
+      adminPass: "dubenji2026"
+    };
+    window.__DATA = obj;
+    __ready = true;
+    if (__initResolve) __initResolve();
+    return DB_REF.set(obj);
+  }
+}).catch(() => {});
+
+// Escucha en tiempo real — NUNCA ejecuta seedData
 DB_REF.onSnapshot(doc => {
   if (doc.exists) {
-    window.__DATA = doc.data();
-  } else {
-    seedData();
+    const remote = doc.data();
+    Object.keys(remote).forEach(k => {
+      if (!__pendingWrites[k]) {
+        window.__DATA[k] = remote[k];
+      }
+    });
   }
   if (!__ready) {
     __ready = true;
     if (__initResolve) __initResolve();
   }
-  document.querySelectorAll('[data-fb-toast]').forEach(el => el.remove());
-  if (__ready && doc.exists) {
-    const t = document.createElement('div');
-    t.setAttribute('data-fb-toast', '1');
-    t.className = 'toast show';
-    t.textContent = '🔄 Datos sincronizados';
-    document.body.appendChild(t);
-    setTimeout(() => t.remove(), 2000);
-  }
-  window.__onFbSync?.();
+  __sync();
 }, err => {
-  console.warn('Firebase error, usando localStorage', err);
+  console.warn('Firebase error, cae a localStorage', err);
   __ready = true;
   if (__initResolve) __initResolve();
 });
 
-// Sembrar datos por defecto en Firestore
-async function seedData() {
-  const obj = {
-    productos: JSON.parse(JSON.stringify(PRODUCTOS_DEFAULT)),
-    guiasTalles: JSON.parse(JSON.stringify(GUIAS_TALLES_DEFAULT)),
-    packTiers: JSON.parse(JSON.stringify(PACK_TIERS_DEFAULT)),
-    efemerides: [],
-    cupones: JSON.parse(JSON.stringify(CUPONES_DEFAULT)),
-    adminPass: "dubenji2026"
-  };
-  window.__DATA = obj;
-  await DB_REF.set(obj);
-}
-
 // =============================================
-// FUNCIONES DE STORAGE (reemplazan localStorage)
+// HELPERS
 // =============================================
 
 function __get(key, fallback) {
@@ -80,11 +86,16 @@ function __get(key, fallback) {
 }
 
 async function __set(key, val) {
+  __pendingWrites[key] = true;
   window.__DATA[key] = val;
   try { await DB_REF.set({ [key]: val }, { merge: true }); } catch {}
+  delete __pendingWrites[key];
 }
 
-// — Productos
+// =============================================
+// FUNCIONES DE STORAGE GLOBALES
+// =============================================
+
 window.getProductos = function() {
   return JSON.parse(JSON.stringify(__get('productos', JSON.parse(JSON.stringify(PRODUCTOS_DEFAULT)))));
 };
@@ -92,7 +103,6 @@ window.saveProductos = function(lista) {
   __set('productos', JSON.parse(JSON.stringify(lista)));
 };
 
-// — Guías de talles
 window.getGuiasTalles = function() {
   return JSON.parse(JSON.stringify(__get('guiasTalles', JSON.parse(JSON.stringify(GUIAS_TALLES_DEFAULT)))));
 };
@@ -100,7 +110,6 @@ window.saveGuiasTalles = function(guias) {
   __set('guiasTalles', JSON.parse(JSON.stringify(guias)));
 };
 
-// — Pack tiers
 window.getPackTiers = function() {
   return JSON.parse(JSON.stringify(__get('packTiers', JSON.parse(JSON.stringify(PACK_TIERS_DEFAULT)))));
 };
@@ -108,7 +117,6 @@ window.savePackTiers = function(tiers) {
   __set('packTiers', JSON.parse(JSON.stringify(tiers)));
 };
 
-// — Cupones
 window.getCupones = function() {
   return JSON.parse(JSON.stringify(__get('cupones', JSON.parse(JSON.stringify(CUPONES_DEFAULT)))));
 };
@@ -116,7 +124,6 @@ window.saveCupones = function(lista) {
   __set('cupones', JSON.parse(JSON.stringify(lista)));
 };
 
-// — Efemérides
 window.getEfemerides = function() {
   return JSON.parse(JSON.stringify(__get('efemerides', [])));
 };
@@ -124,7 +131,6 @@ window.saveEfemerides = function(lista) {
   __set('efemerides', JSON.parse(JSON.stringify(lista)));
 };
 
-// — Admin pass
 window.getAdminPass = function() {
   if (window.__DATA && window.__DATA.adminPass) return window.__DATA.adminPass;
   return localStorage.getItem('dubenji_admin_pass') || 'dubenji2026';
@@ -132,10 +138,11 @@ window.getAdminPass = function() {
 window.saveAdminPass = async function(pass) {
   window.__DATA.adminPass = pass;
   localStorage.setItem('dubenji_admin_pass', pass);
+  __pendingWrites.adminPass = true;
   try { await DB_REF.set({ adminPass: pass }, { merge: true }); } catch {}
+  delete __pendingWrites.adminPass;
 };
 
-// — Presupuestos
 window.getPresupuesto = function(id) {
   if (window.__DATA && window.__DATA.presupuestos && window.__DATA.presupuestos[id]) return window.__DATA.presupuestos[id];
   try {
