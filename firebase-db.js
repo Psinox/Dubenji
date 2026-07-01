@@ -40,6 +40,18 @@ function __sync() {
   }, 300);
 }
 
+// SEGURIDAD: si Firestore no responde en 5s (red bloqueada, señal mala, etc.)
+// no dejamos la pantalla colgada esperando para siempre — arrancamos con lo
+// que haya en localStorage y avisamos que estamos en modo offline.
+setTimeout(() => {
+  if (!__ready) {
+    console.warn('⚠️ Firestore no respondió a tiempo, arrancando en modo offline (localStorage).');
+    window.__FB_BLOCKED = true;
+    __ready = true;
+    if (__initResolve) __initResolve();
+  }
+}, 5000);
+
 // Verificación única inicial — solo crea datos si el doc NO existe
 DB_REF.get().then(doc => {
   if (!doc.exists) {
@@ -118,8 +130,12 @@ window.saveProductos = function(lista) {
 // devolver la lista nueva. Ej:
 //   window.updateProductos(lista => { lista.push(nuevo); return lista; });
 window.updateProductos = async function(mutatorFn) {
+  const conTimeout = (promesa, ms) => Promise.race([
+    promesa,
+    new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))
+  ]);
   try {
-    const nuevaLista = await FIRESTORE.runTransaction(async (tx) => {
+    const nuevaLista = await conTimeout(FIRESTORE.runTransaction(async (tx) => {
       const doc = await tx.get(DB_REF);
       const actual = (doc.exists && doc.data().productos)
         ? doc.data().productos
@@ -127,11 +143,11 @@ window.updateProductos = async function(mutatorFn) {
       const resultado = mutatorFn(JSON.parse(JSON.stringify(actual)));
       tx.set(DB_REF, { productos: resultado }, { merge: true });
       return resultado;
-    });
+    }), 6000);
     window.__DATA.productos = nuevaLista;
     return nuevaLista;
   } catch (e) {
-    console.error('⚠️ Falló la transacción de productos, guardo local como respaldo:', e);
+    console.error('⚠️ Falló o tardó demasiado la transacción de productos, guardo local como respaldo:', e);
     const lista = mutatorFn(getProductos());
     saveProductos(lista);
     return lista;

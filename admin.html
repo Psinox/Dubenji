@@ -718,6 +718,7 @@ async function guardarProducto() {
   const activo   = document.getElementById('fActivo').checked;
   const guiaTalle = document.getElementById('fGuiaTalle').value;
   const imagen = document.getElementById('fImagen').value.trim();
+  const efemeride = document.getElementById('fEfemeride').value;
 
   if (!nombre || !descripcion) { toast('Completá nombre y descripción', 'error'); return; }
 
