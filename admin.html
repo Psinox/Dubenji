@@ -708,7 +708,7 @@ function subirImgColor(idxColor, slotIdx, input) {
 // =============================================
 // CRUD
 // =============================================
-function guardarProducto() {
+async function guardarProducto() {
   const id       = document.getElementById('editId').value;
   const tipo     = document.getElementById('fTipo').value;
   const nombre   = document.getElementById('fNombre').value.trim();
@@ -735,8 +735,6 @@ function guardarProducto() {
     talles: c.talles
   }));
 
-  const lista = getProductos();
-
   const prodData = { tipo, nombre, categoria, precio, descripcion, badge, activo };
   if (esPaquete) {
     delete prodData.colores;
@@ -750,18 +748,19 @@ function guardarProducto() {
   if (imagen) prodData.imagen = imagen;
   else delete prodData.imagen;
 
-  if (id) {
-    const idx = lista.findIndex(p => p.id === parseInt(id));
-    if (idx > -1) {
-      lista[idx] = { ...lista[idx], ...prodData };
+  const esNuevo = !id;
+  await window.updateProductos(lista => {
+    if (id) {
+      const idx = lista.findIndex(p => p.id === parseInt(id));
+      if (idx > -1) lista[idx] = { ...lista[idx], ...prodData };
+    } else {
+      const newId = Math.max(0, ...lista.map(p => p.id)) + 1;
+      lista.push({ id: newId, ...prodData });
     }
-    toast('✅ Producto actualizado');
-  } else {
-    const newId = Math.max(0, ...lista.map(p => p.id)) + 1;
-    lista.push({ id: newId, ...prodData });
-    toast('✅ Producto agregado');
-  }
-  saveProductos(lista);
+    return lista;
+  });
+
+  toast(esNuevo ? '✅ Producto agregado' : '✅ Producto actualizado');
   resetForm();
   renderAdminLista();
 }
@@ -805,19 +804,20 @@ function padArray(arr, len, val) {
   return result;
 }
 
-function toggleActivo(id) {
-  const lista = getProductos();
-  const p = lista.find(x => x.id === id);
-  if (!p) return;
-  p.activo = !p.activo;
-  saveProductos(lista);
+async function toggleActivo(id) {
+  let nuevoEstado = null;
+  await window.updateProductos(lista => {
+    const p = lista.find(x => x.id === id);
+    if (p) { p.activo = !p.activo; nuevoEstado = p.activo; }
+    return lista;
+  });
   renderAdminLista();
-  toast(p.activo ? '✅ Producto activado' : '⏸ Producto pausado');
+  if (nuevoEstado !== null) toast(nuevoEstado ? '✅ Producto activado' : '⏸ Producto pausado');
 }
 
-function eliminarProducto(id) {
+async function eliminarProducto(id) {
   if (!confirm('¿Seguro que querés eliminar este producto? Esta acción no se puede deshacer.')) return;
-  saveProductos(getProductos().filter(p => p.id !== id));
+  await window.updateProductos(lista => lista.filter(p => p.id !== id));
   renderAdminLista();
   toast('🗑️ Producto eliminado');
 }

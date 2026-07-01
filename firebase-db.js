@@ -14,6 +14,12 @@ const FIREBASE_CONFIG = {
 
 firebase.initializeApp(FIREBASE_CONFIG);
 const FIRESTORE = firebase.firestore();
+// Fuerza long-polling en vez de streaming: evita que adblockers/extensiones
+// bloqueen las conexiones de Firestore (error net::ERR_BLOCKED_BY_CLIENT)
+FIRESTORE.settings({
+  experimentalAutoDetectLongPolling: true,
+  useFetchStreams: false
+});
 const DB_REF = FIRESTORE.collection('appData').doc('main');
 
 // =============================================
@@ -68,7 +74,8 @@ DB_REF.onSnapshot(doc => {
   }
   __sync();
 }, err => {
-  console.warn('Firebase error, cae a localStorage', err);
+  console.warn('⚠️ No se pudo conectar a Firestore (posible bloqueo de adblocker/extensión). Los datos se guardan solo en este navegador (localStorage) hasta que se restablezca la conexión.', err);
+  window.__FB_BLOCKED = true;
   __ready = true;
   if (__initResolve) __initResolve();
 });
@@ -101,6 +108,34 @@ window.getProductos = function() {
 };
 window.saveProductos = function(lista) {
   __set('productos', JSON.parse(JSON.stringify(lista)));
+};
+
+// =============================================
+// ESCRITURA ATÓMICA DE PRODUCTOS (evita que dos
+// guardados simultáneos se pisen entre sí)
+// =============================================
+// mutatorFn recibe la lista MÁS RECIENTE del servidor y debe
+// devolver la lista nueva. Ej:
+//   window.updateProductos(lista => { lista.push(nuevo); return lista; });
+window.updateProductos = async function(mutatorFn) {
+  try {
+    const nuevaLista = await FIRESTORE.runTransaction(async (tx) => {
+      const doc = await tx.get(DB_REF);
+      const actual = (doc.exists && doc.data().productos)
+        ? doc.data().productos
+        : JSON.parse(JSON.stringify(PRODUCTOS_DEFAULT));
+      const resultado = mutatorFn(JSON.parse(JSON.stringify(actual)));
+      tx.set(DB_REF, { productos: resultado }, { merge: true });
+      return resultado;
+    });
+    window.__DATA.productos = nuevaLista;
+    return nuevaLista;
+  } catch (e) {
+    console.error('⚠️ Falló la transacción de productos, guardo local como respaldo:', e);
+    const lista = mutatorFn(getProductos());
+    saveProductos(lista);
+    return lista;
+  }
 };
 
 window.getGuiasTalles = function() {
