@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Admin — Dubenji Indumentaria</title>
   <link rel="stylesheet" href="style.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚙️</text></svg>">
@@ -27,6 +27,14 @@
     .form-group input, .form-group select, .form-group textarea { width:100%; background:var(--dark-3); border:1px solid rgba(168,85,247,.2); color:var(--blanco); padding:9px 13px; border-radius:8px; font-size:.9rem; font-family:var(--font-body); outline:none; transition:border-color .2s; }
     .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color:var(--morado); }
     .form-group textarea { resize:vertical; min-height:60px; }
+    .form-group select {
+      appearance: none; -webkit-appearance: none; -moz-appearance: none;
+      background-image: linear-gradient(45deg, transparent 50%, var(--gris) 50%), linear-gradient(135deg, var(--gris) 50%, transparent 50%);
+      background-position: calc(100% - 20px) center, calc(100% - 15px) center;
+      background-size: 5px 5px, 5px 5px;
+      background-repeat: no-repeat;
+      padding-right: 34px;
+    }
     .form-group select option { background:var(--dark-2); }
     .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
     .form-row-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
@@ -180,8 +188,12 @@
 
       .admin-body { padding:16px 12px; gap:16px; }
       .form-panel { padding:16px; }
-      .form-row, .form-row-3 { grid-template-columns:1fr; }
-      .form-group input, .form-group select, .form-group textarea { font-size:16px; } /* evita zoom automático en iOS */
+      .form-panel h2 { font-size:1.05rem; margin-bottom:14px; }
+      .form-group { margin-bottom:11px; }
+      .form-group label { font-size:.7rem; margin-bottom:4px; }
+      .form-row, .form-row-3 { grid-template-columns:1fr; gap:11px; }
+      .form-group input, .form-group select, .form-group textarea { padding:10px 12px; font-size:16px; } /* evita zoom automático en iOS */
+      .form-group select { padding-right:34px; }
 
       /* Stock por talle: en vez de aplastarse, scrollea horizontal */
       .talles-grid { grid-template-columns:none !important; grid-auto-flow:column; grid-auto-columns:minmax(58px,1fr); overflow-x:auto; padding-bottom:6px; -webkit-overflow-scrolling:touch; }
