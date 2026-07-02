@@ -170,6 +170,43 @@
     }
 
     @media (max-width:800px) { .admin-body { grid-template-columns:1fr; } .form-panel { position:static; max-height:none; } }
+
+    /* ——— MOBILE: panel admin usable de verdad ——— */
+    @media (max-width:600px) {
+      .admin-header { flex-wrap:wrap; gap:10px; padding:12px 16px; }
+      .admin-header h1 { font-size:1.05rem; }
+      .admin-header-links { width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:2px; }
+      .admin-header-links a, .admin-header-links button { white-space:nowrap; flex-shrink:0; }
+
+      .admin-body { padding:16px 12px; gap:16px; }
+      .form-panel { padding:16px; }
+      .form-row, .form-row-3 { grid-template-columns:1fr; }
+      .form-group input, .form-group select, .form-group textarea { font-size:16px; } /* evita zoom automático en iOS */
+
+      /* Stock por talle: en vez de aplastarse, scrollea horizontal */
+      .talles-grid { grid-template-columns:none !important; grid-auto-flow:column; grid-auto-columns:minmax(58px,1fr); overflow-x:auto; padding-bottom:6px; -webkit-overflow-scrolling:touch; }
+
+      /* Tarjeta de producto: imagen+info arriba, acciones en fila completa abajo */
+      .admin-card { grid-template-columns:52px 1fr; padding:14px; }
+      .admin-card img { width:52px; height:52px; }
+      .admin-card-nombre { white-space:normal; }
+      .admin-card-actions { grid-column:1/-1; flex-direction:row; margin-top:4px; }
+      .admin-card-actions button { flex:1; min-height:40px; font-size:.8rem; }
+
+      /* Cupones: layout en flex-wrap para que nada se corte */
+      .cupon-form { grid-template-columns:1fr; }
+      .cupon-card { display:flex; flex-wrap:wrap; align-items:center; gap:8px 14px; }
+      .cupon-card-actions { width:100%; justify-content:flex-end; margin-top:2px; }
+      .cupon-card-actions button { min-width:46px; min-height:38px; font-size:.8rem; }
+
+      .list-tabs { flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:4px; }
+      .list-tab { flex-shrink:0; }
+
+      .export-bar { flex-direction:column; }
+      .btn-export { width:100%; }
+
+      .login-wall-box { padding:32px 22px; }
+    }
   </style>
 </head>
 <body>
